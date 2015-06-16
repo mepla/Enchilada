@@ -1,12 +1,13 @@
 __author__ = 'Mepla'
 
-from flask import request
-from flask_restful import Resource
-from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
-from www.factories import DatabaseFactory
 import logging
 import pprint
 
+from flask import request
+from flask_restful import Resource
+
+from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
+from www.databases.factories import DatabaseFactory
 
 number_of_allowed_users_with_udid = 3
 
@@ -28,7 +29,7 @@ class SignUp(Resource):
             return msg, 400
 
         email = body.get('email')
-        user_exists = self.graph_db.user_exist(email)
+        user_exists = self.graph_db.find_user(email)
 
         if user_exists:
             msg = {'message': 'A user is already registered with this email address: {}'.format(email)}
@@ -46,4 +47,3 @@ class SignUp(Resource):
             return msg, 400
 
         return self.graph_db.create_new_user(**body)
-

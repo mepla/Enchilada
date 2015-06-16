@@ -1,8 +1,11 @@
 __author__ = 'Mepla'
 
 import logging
+
 from resources.sign_up import SignUp
+from resources.login import Login
 from www import api, app
+
 
 def initialize_app():
     logger = logging.getLogger()
@@ -12,6 +15,7 @@ def initialize_app():
     py2neo_logger.setLevel(logging.CRITICAL)
 
     api.add_resource(SignUp, '/signup')
+    api.add_resource(Login, '/login')
 
 if __name__ == '__main__':
     initialize_app()

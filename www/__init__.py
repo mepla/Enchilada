@@ -1,14 +1,19 @@
 __author__ = 'Mepla'
 
-
 import json
 import logging
+
 from flask import Flask, jsonify
 from flask_restful import Api
+from flask_httpauth import HTTPBasicAuth
+
 from www.config import default_configs, config_path
+from www.authentication.oauth2 import OAuth2Provider
 
 app = Flask(__name__)
 api = Api(app)
+auth = HTTPBasicAuth()
+oauth2 = OAuth2Provider()
 
 # @app.errorhandler(Exception)
 def all_exception_response(e):
@@ -16,8 +21,3 @@ def all_exception_response(e):
 
 
 
-try:
-    configs = json.load(config_path)
-except Exception as exc:
-    logging.warning('Could not load config file ({}). Default configs loaded.'.format(config_path))
-    configs = default_configs

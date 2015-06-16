@@ -28,6 +28,19 @@ signup_schema = '''
 }
 '''
 
+login_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "username":  { "type": "string" },
+        "password": { "type": "string" }
+    },
+    "additionalProperties": false,
+    "required": [ "username", "password"]
+}
+'''
+
+
 
 def validate_json(json_data, schema):
     try:
@@ -35,5 +48,5 @@ def validate_json(json_data, schema):
             schema = json.loads(schema)
         validate(json_data, schema)
     except Exception as exc:
-        logging.info('Error validating json: {} --> {}'.format(type(exc), exc.message))
+        logging.error('Error validating json: {} --> {}'.format(type(exc), exc.message))
         raise JsonValidationException(exc.message)
