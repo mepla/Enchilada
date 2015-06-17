@@ -9,6 +9,7 @@ from flask_restful.reqparse import RequestParser
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
 from www import auth, oauth2
+from www.authentication.password_management import PasswordManager
 from www.authentication.oauth2 import ClientNotAuthorized
 from www.resources.json_schemas import login_schema, validate_json, JsonValidationException
 
@@ -58,9 +59,13 @@ class Login(Resource):
 
             graph_db = DatabaseFactory().get_database_driver('graph')
             existing_user = graph_db.find_user(username)
-            if existing_user['password'] == password:
-                access_token_response = oauth2.generate_access_token(existing_user['uid'], client_id, scope)
-                return jsonify(access_token_response)
+            if existing_user:
+                if PasswordManager.compare_passwords(password, existing_user['password'], existing_user['uid'], existing_user['email']):
+                    access_token_response = oauth2.generate_access_token(existing_user['uid'], client_id, scope)
+                    return jsonify(access_token_response)
+                else:
+                    msg = {'message': 'Your username and password combination is not correct.'}
+                    return msg, 401
             else:
                 msg = {'message': 'Your username and password combination is not correct.'}
                 return msg, 401

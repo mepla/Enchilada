@@ -2,10 +2,11 @@ __author__ = 'Mepla'
 
 import logging
 import pprint
-
+from uuid import uuid4
 from flask import request
 from flask_restful import Resource
-
+from www import utils
+from www.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
 from www.databases.factories import DatabaseFactory
 
@@ -29,6 +30,11 @@ class SignUp(Resource):
             return msg, 400
 
         email = body.get('email')
+        if not utils.check_email_format(email):
+            msg = {'message': 'The email address you entered is invalid.'}
+            logging.error(msg)
+            return msg, 400
+
         user_exists = self.graph_db.find_user(email)
 
         if user_exists:
@@ -45,5 +51,9 @@ class SignUp(Resource):
 
             logging.debug(msg)
             return msg, 400
+
+        body['uid'] = uuid4().hex
+        hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
+        body['password'] = hashed_password
 
         return self.graph_db.create_new_user(**body)
