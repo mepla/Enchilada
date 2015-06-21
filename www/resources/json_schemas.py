@@ -40,6 +40,35 @@ login_schema = '''
 }
 '''
 
+business_signup_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "creation_date":  { "type": "string" },
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "number" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+    },
+    "additionalProperties": false,
+    "required": [ "creation_date","name","title","description","category","email","password","latitude","longitude"]
+}
+'''
+
+business_app_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "uid":  { "type": "string" }
+    },
+    "additionalProperties": false,
+    "required": [ "uid"]
+}
+'''
 
 
 def validate_json(json_data, schema):

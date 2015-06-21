@@ -94,3 +94,15 @@ class Neo4jDatabase(GraphDatabaseBase):
         for user in existing_users_with_udid:
             count += 1
         return count
+
+    def create_new_business(self, **kwargs):
+        kwargs['id'] = uuid4().hex
+        new_business = Node('business', **kwargs)
+        return self._graph.create(new_business)[0].properties
+
+    def find_business(self, business_id):
+        existing_business = self._graph.find_one('business', 'uid', business_id)
+        if existing_business:
+            return existing_business.properties
+
+        return "Nothing is here for you!"
