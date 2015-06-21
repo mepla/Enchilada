@@ -82,7 +82,11 @@ class Neo4jDatabase(GraphDatabaseBase):
         return self._graph.create(new_user)[0].properties
 
     def find_user(self, email):
-        existing_user = self._graph.find_one('user', 'email', email)
+        try:
+            existing_user = self._graph.find_one('user', 'email', email)
+        except Exception as exc:
+            raise DatabaseFindError()
+
         if existing_user:
             return existing_user
 
