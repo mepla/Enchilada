@@ -6,15 +6,15 @@ from www.resources.json_schemas import validate_json, JsonValidationException, b
 from flask import request
 import logging
 import pprint
-from uuid import uuid4
-from www.authentication import password_management as pm
+from www.authentication.oauth2 import OAuth2Provider
 
 class BusinessProfile(Resource):
     def __init__(self):
         super(BusinessProfile, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    def post(self):
+    @OAuth2Provider.check_access_token
+    def post(self, uid=None):
         logging.info('Client requested for business profile.')
         body = request.get_json(force=True)
 
