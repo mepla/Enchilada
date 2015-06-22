@@ -52,7 +52,13 @@ class Login(Resource):
                 logging.error(msg)
                 return msg, 401
 
-            data = request.get_json(force=True)
+            try:
+                data = request.get_json(force=True)
+            except Exception as exc:
+                msg = {'msg': exc.message}
+                logging.error(msg)
+                return msg, 400
+
             try:
                 validate_json(data, login_schema)
             except JsonValidationException as exc:

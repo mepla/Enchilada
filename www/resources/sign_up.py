@@ -19,7 +19,13 @@ class SignUp(Resource):
 
     def post(self):
         logging.info('Client requested for sign up.')
-        body = request.get_json(force=True)
+
+        try:
+            data = request.get_json(force=True)
+        except Exception as exc:
+            msg = {'msg': exc.message}
+            logging.error(msg)
+            return msg, 400
 
         try:
             validate_json(body, signup_schema)
