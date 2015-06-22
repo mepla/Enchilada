@@ -41,7 +41,7 @@ class OAuth2Provider(object):
         except DatabaseFindError as exc:
             raise ClientDoesNotExist()
 
-    def generate_access_token(self, uid, client_id, scope, ttl=7200):
+    def generate_access_token(self, uid, client_id, scope, ttl=max_ttl):
         access_token = uuid4().hex
         refresh_token = uuid4().hex
 
@@ -78,9 +78,18 @@ class OAuth2Provider(object):
             doc = self.auth_db['tokens'].find_doc('access_token', token)
             if doc:
                 if not client_id == doc.get('client_id'):
-                    raise ClientNotAuthorized()
+                    msg = {'message': 'Your client_id does not match with your access token.'}
+                    logging.error(msg)
+                    return msg, 401
+
+                if time.time() - doc.get('issue_date') > doc.get('expires_in'):
+                    msg = {'message': 'Your access token is expired, please refresh it using your refresh token.'}
+                    logging.error(msg)
+                    return msg, 401
             else:
-                raise ClientNotAuthorized()
+                msg = {'message': 'Your access token does not exist.'}
+                logging.error(msg)
+                return msg, 401
 
             return f(*args, **dict(kwargs.items() + {'uid': doc.get('uid')}.items()))
 
