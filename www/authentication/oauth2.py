@@ -41,7 +41,7 @@ class OAuth2Provider(object):
         except DatabaseFindError as exc:
             raise ClientDoesNotExist()
 
-    def generate_access_token(self, uid, client_id, scope, ttl=7200):
+    def generate_access_token(self, uid, client_id, scope, ttl=max_ttl):
         access_token = uuid4().hex
         refresh_token = uuid4().hex
 
@@ -56,8 +56,29 @@ class OAuth2Provider(object):
 
         return {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer', 'scope': scope}
 
-    def check_access_token(self, f):
-        @wraps
+    def refresh_access_token(self, refresh_token):
+        try:
+            doc = self.auth_db.find_doc('refresh_token', refresh_token, 'tokens')
+        except DatabaseFindError as exc:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+        if doc:
+            uid = doc.get('uid')
+            c_id = doc.get('client_id')
+            scope = doc.get('scope')
+            ttl = doc.get('expires_in')
+            return self.generate_access_token(uid, c_id, scope, ttl)
+
+        else:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+    @staticmethod
+    def check_access_token(f):
+        @wraps(f)
         def wrapper(*args, **kwargs):
 
             auth = request.headers.get('Authorization')
@@ -68,6 +89,8 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
+            logging.debug('Authorizing client with ID and secret.')
+
             try:
                 (token_type, token) = auth.split(' ')
             except Exception as exc:
@@ -75,12 +98,26 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
-            doc = self.auth_db['tokens'].find_doc('access_token', token)
+            logging.debug('Authorizing resource owner with access token: {}'.format(token_type + token))
+
+            auth_db = DatabaseFactory().get_database_driver('document/auth')
+            doc = auth_db.find_doc('access_token', token, 'tokens')
             if doc:
                 if not client_id == doc.get('client_id'):
-                    raise ClientNotAuthorized()
+                    msg = {'message': 'Your client_id does not match with your access token.'}
+                    logging.error(msg)
+                    return msg, 401
+
+                if time.time() - doc.get('issue_date') > doc.get('expires_in'):
+                    msg = {'message': 'Your access token is expired, please refresh it using your refresh token.'}
+                    logging.error(msg)
+                    return msg, 401
             else:
-                raise ClientNotAuthorized()
+                msg = {'message': 'Your access token does not exist.'}
+                logging.error(msg)
+                return msg, 401
+
+            logging.info('Resource owner authenticated successfully. client_id: {}  uid: {}'.format(doc.get('client_id'), doc.get('uid')))
 
             return f(*args, **dict(kwargs.items() + {'uid': doc.get('uid')}.items()))
 
