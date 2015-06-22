@@ -56,8 +56,29 @@ class OAuth2Provider(object):
 
         return {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer', 'scope': scope}
 
-    def check_access_token(self, f):
-        @wraps
+    def refresh_access_token(self, refresh_token):
+        try:
+            doc = self.auth_db['tokens'].find_doc('refresh_token', refresh_token)
+        except DatabaseFindError as exc:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+        if doc:
+            uid = doc.get('uid')
+            c_id = doc.get('client_id')
+            scope = doc.get('scope')
+            ttl = doc.get('expires_in')
+            return self.generate_access_token(uid, c_id, scope, ttl)
+
+        else:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+    @staticmethod
+    def check_access_token(f):
+        @wraps(f)
         def wrapper(*args, **kwargs):
 
             auth = request.headers.get('Authorization')
@@ -75,7 +96,8 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
-            doc = self.auth_db['tokens'].find_doc('access_token', token)
+            auth_db = DatabaseFactory().get_database_driver('document/auth')
+            doc = auth_db['tokens'].find_doc('access_token', token)
             if doc:
                 if not client_id == doc.get('client_id'):
                     msg = {'message': 'Your client_id does not match with your access token.'}
