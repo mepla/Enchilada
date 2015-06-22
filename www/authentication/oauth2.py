@@ -58,7 +58,7 @@ class OAuth2Provider(object):
 
     def refresh_access_token(self, refresh_token):
         try:
-            doc = self.auth_db['tokens'].find_doc('refresh_token', refresh_token)
+            doc = self.auth_db.find_doc('refresh_token', refresh_token, 'tokens')
         except DatabaseFindError as exc:
             msg = {'message': 'You refresh token does not exit.'}
             logging.error(msg)
@@ -89,6 +89,8 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
+            logging.debug('Authorizing client with ID and secret.')
+
             try:
                 (token_type, token) = auth.split(' ')
             except Exception as exc:
@@ -96,8 +98,10 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
+            logging.debug('Authorizing resource owner with access token: {}'.format(token_type + token))
+
             auth_db = DatabaseFactory().get_database_driver('document/auth')
-            doc = auth_db['tokens'].find_doc('access_token', token)
+            doc = auth_db.find_doc('access_token', token, 'tokens')
             if doc:
                 if not client_id == doc.get('client_id'):
                     msg = {'message': 'Your client_id does not match with your access token.'}
@@ -112,6 +116,8 @@ class OAuth2Provider(object):
                 msg = {'message': 'Your access token does not exist.'}
                 logging.error(msg)
                 return msg, 401
+
+            logging.info('Resource owner authenticated successfully. client_id: {}  uid: {}'.format(doc.get('client_id'), doc.get('uid')))
 
             return f(*args, **dict(kwargs.items() + {'uid': doc.get('uid')}.items()))
 
