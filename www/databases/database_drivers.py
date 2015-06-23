@@ -109,4 +109,4 @@ class Neo4jDatabase(GraphDatabaseBase):
         if existing_business:
             return existing_business.properties
 
-        return "Nothing is here for you!"
+        return {"msg":"No business found for this id"}
