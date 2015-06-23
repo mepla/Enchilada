@@ -16,7 +16,13 @@ class BusinessProfile(Resource):
     @OAuth2Provider.check_access_token
     def post(self, uid=None):
         logging.info('Client requested for business profile.')
-        body = request.get_json(force=True)
+
+        try:
+            body = request.get_json(force=True)
+        except Exception as exc:
+            msg = {'msg': exc.message}
+            logging.error(msg)
+            return msg, 400
 
         try:
             validate_json(body, business_app_schema)
