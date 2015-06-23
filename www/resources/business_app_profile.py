@@ -14,23 +14,6 @@ class BusinessProfile(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @OAuth2Provider.check_access_token
-    def post(self, uid=None):
+    def get(self, uid, b_id):
         logging.info('Client requested for business profile.')
-
-        try:
-            body = request.get_json(force=True)
-        except Exception as exc:
-            msg = {'msg': exc.message}
-            logging.error(msg)
-            return msg, 400
-
-        try:
-            validate_json(body, business_app_schema)
-            # validate_json(body, business_signup_schema)
-            logging.info('Client requested for business_app with uid: \n{}'.format(pprint.pformat(body)))
-            return self.graph_db.find_business(body.get('uid'))
-        except JsonValidationException as exc:
-            msg = {'messages': exc.message}
-            logging.debug(msg)
-            logging.info('Oh Snap')
-            return msg, 400
+        return self.graph_db.find_business(b_id)
