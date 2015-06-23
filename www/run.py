@@ -17,8 +17,8 @@ def initialize_app():
 
     api.add_resource(SignUp, '/signup')
     api.add_resource(Login, '/login')
-    api.add_resource(BusinessProfile, '/business')
+    api.add_resource(BusinessProfile, '/business/<string:b_id>')
 
 if __name__ == '__main__':
     initialize_app()
-    app.run(host='0.0.0.0', debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', debug=True)
