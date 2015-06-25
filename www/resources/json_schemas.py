@@ -70,7 +70,6 @@ business_app_schema = '''
 }
 '''
 
-
 def validate_json(json_data, schema):
     try:
         if isinstance(schema, str):
