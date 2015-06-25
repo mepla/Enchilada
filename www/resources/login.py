@@ -55,7 +55,7 @@ class Login(Resource):
             try:
                 data = request.get_json(force=True)
             except Exception as exc:
-                msg = {'msg': exc.message}
+                msg = {'msg': 'Your JSON is invalid.'}
                 logging.error(msg)
                 return msg, 400
 
