@@ -13,7 +13,7 @@ class CheckIn(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @OAuth2Provider.check_access_token
-    def post(self, uid, b_id):
+    def post(self, uid, bid):
         logging.info('Client requested for checkin.')
         try:
             data = request.get_json(force=True)
@@ -29,4 +29,4 @@ class CheckIn(Resource):
             msg = {'message': exc.message}
             logging.debug(msg)
             return msg, 400
-        return self.graph_db.checkin_user(b_id, data['uid'])
+        return self.graph_db.checkin_user(bid, data['uid'])

@@ -14,6 +14,6 @@ class BusinessProfile(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @OAuth2Provider.check_access_token
-    def get(self, uid, b_id):
+    def get(self, uid, bid):
         logging.info('Client requested for business profile.')
-        return self.graph_db.find_business(b_id)
+        return self.graph_db.find_business(bid)
