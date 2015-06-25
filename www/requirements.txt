@@ -3,3 +3,4 @@ flask-restful
 flask-httpauth
 jsonschema
 py2neo
+pymongo

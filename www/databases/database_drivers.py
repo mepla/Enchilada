@@ -2,7 +2,7 @@ __author__ = 'Mepla'
 
 import logging
 from uuid import uuid4
-from py2neo import Graph, Node, Relationship, authenticate
+from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
 
 
@@ -92,6 +92,17 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         return None
 
+    def find_user_by_id(self, uid):
+        try:
+            existing_user = self._graph.find_one('user', 'uid', uid)
+        except Exception as exc:
+            raise DatabaseFindError()
+
+        if existing_user:
+            return existing_user
+
+        return None
+
     def users_with_udid(self, udid):
         existing_users_with_udid = self._graph.find('user', 'udid', udid, 4)
         count = 0
@@ -109,4 +120,9 @@ class Neo4jDatabase(GraphDatabaseBase):
         if existing_business:
             return existing_business.properties
 
-        return "Nothing is here for you!"
+        return {"msg":"No business found for this id"}
+
+    def checkin_user(self, business_id, user_object):
+        business = self.find_business(business_id)
+        user = self.find_user_by_id(user_object)
+        return self._graph.create(rel(business, "CHECKIN", user))[0].properties
