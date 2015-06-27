@@ -63,10 +63,10 @@ business_app_schema = '''
 {
     "type": "object",
     "properties":{
-        "uid":  { "type": "string" }
+        "bid":  { "type": "string" }
     },
     "additionalProperties": false,
-    "required": [ "uid"]
+    "required": [ "bid"]
 }
 '''
 

@@ -21,7 +21,7 @@ def initialize_app():
     api.add_resource(Login, '/login')
     # *** Business Profile ***
     api.add_resource(BusinessProfile, '/business/<string:bid>')
-    api.add_resource(CheckIn, '/business/<string:bid>/checkin')
+    api.add_resource(CheckIn, '/businesses/<string:bid>/checkins')
     api.add_resource(Users, '/users')
     api.add_resource(User, '/users/<string:user_id>')
 

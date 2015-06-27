@@ -7,7 +7,7 @@ from www.resources.json_schemas import validate_json, JsonValidationException, s
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 from www.authentication.oauth2 import OAuth2Provider
-from filtering_response_objects import filter_user_info
+from filtering_results import filter_user_info
 
 class Users(Resource):
     def __init__(self):

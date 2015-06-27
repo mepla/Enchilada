@@ -4,7 +4,7 @@ import logging
 from uuid import uuid4
 from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
-
+import time
 
 class DatabaseFindError(Exception):
     pass
@@ -107,9 +107,9 @@ class Neo4jDatabase(GraphDatabaseBase):
         new_business = Node('business', **kwargs)
         return self._graph.create(new_business)[0].properties
 
-    def find_business(self, business_id):
+    def find_single_business(self, key, value):
         try:
-            existing_business = self._graph.find_one('business', 'uid', business_id)
+            existing_business = self._graph.find_one('business', key, value)
         except Exception as exc:
             raise DatabaseFindError()
 
@@ -118,7 +118,25 @@ class Neo4jDatabase(GraphDatabaseBase):
         else:
             raise DatabaseRecordNotFound
 
-    def checkin_user(self, business_id, user_object):
-        business = self.find_business(business_id)
-        user = self.find_single_user('uid', user_object)
-        return self._graph.create(rel(business, "CHECKIN", user))[0].properties
+    def checkin_user(self, business_id, user_id):
+        try:
+            business = self._graph.find_one('business', 'bid', business_id)
+        except Exception as exc:
+            raise DatabaseFindError()
+
+        user = self.find_single_user('uid', user_id)
+
+        existing_relation = self._graph.match_one(user, "CHECK_IN", business)
+        if existing_relation:
+            existing_relation.properties['count'] += 1
+            existing_relation.properties['timestamps'] = str(time.time()) + ' ' + existing_relation.properties['timestamps']
+            print(existing_relation.properties['count'], existing_relation.properties['timestamps'])
+            # self._graph.save(existing_relation)
+            existing_relation.push()
+            return existing_relation.properties
+        else:
+            new_id = str(uuid4())
+            timestamps = str(time.time())
+            new_relation = Relationship(user, 'CHECK_IN', business, id=new_id, count=1, timestamps=timestamps)
+            self._graph.create(new_relation)
+            return new_relation.properties
