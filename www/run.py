@@ -4,7 +4,8 @@ import logging
 
 from resources.sign_up import SignUp
 from resources.login import Login
-from www.resources.business.business_app_profile import BusinessProfile
+from resources.users import User, Users
+from www.resources.business_app_profile import BusinessProfile
 from www.resources.checkin import CheckIn
 from www import api, app
 
@@ -21,6 +22,8 @@ def initialize_app():
     # *** Business Profile ***
     api.add_resource(BusinessProfile, '/business/<string:bid>')
     api.add_resource(CheckIn, '/business/<string:bid>/checkin')
+    api.add_resource(Users, '/users')
+    api.add_resource(User, '/users/<string:user_id>')
 
 if __name__ == '__main__':
     initialize_app()

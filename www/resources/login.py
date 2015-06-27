@@ -19,7 +19,6 @@ class Login(Resource):
     def __init__(self):
         pass
 
-    # @auth.login_required
     def post(self):
         arg_parser = RequestParser()
         arg_parser.add_argument('grant_type', type=str, help='Your request must contain a \'grant_type\' query string. Please check the documentation.', required=True)
@@ -70,7 +69,7 @@ class Login(Resource):
 
             graph_db = DatabaseFactory().get_database_driver('graph')
             try:
-                existing_user = graph_db.find_user(username)
+                existing_user = graph_db.find_single_user('email', username)
             except DatabaseFindError as exc:
                 msg = {'message': 'Internal server error'}, 500
                 logging.error(msg)

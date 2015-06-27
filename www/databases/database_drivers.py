@@ -12,6 +12,9 @@ class DatabaseFindError(Exception):
 class DatabaseSaveError(Exception):
     pass
 
+class DatabaseRecordNotFound(Exception):
+    pass
+
 class DatabaseNotFound(Exception):
     pass
 
@@ -81,29 +84,18 @@ class Neo4jDatabase(GraphDatabaseBase):
         new_user = Node('user', **kwargs)
         return self._graph.create(new_user)[0].properties
 
-    def find_user(self, email):
+    def find_single_user(self, key, value):
         try:
-            existing_user = self._graph.find_one('user', 'email', email)
+            existing_user = self._graph.find_one('user', key, value)
         except Exception as exc:
             raise DatabaseFindError()
 
         if existing_user:
             return existing_user
+        else:
+            raise DatabaseRecordNotFound
 
-        return None
-
-    def find_user_by_id(self, uid):
-        try:
-            existing_user = self._graph.find_one('user', 'uid', uid)
-        except Exception as exc:
-            raise DatabaseFindError()
-
-        if existing_user:
-            return existing_user
-
-        return None
-
-    def users_with_udid(self, udid):
+    def users_with_udid_count(self, udid):
         existing_users_with_udid = self._graph.find('user', 'udid', udid, 4)
         count = 0
         for user in existing_users_with_udid:
@@ -116,13 +108,17 @@ class Neo4jDatabase(GraphDatabaseBase):
         return self._graph.create(new_business)[0].properties
 
     def find_business(self, business_id):
-        existing_business = self._graph.find_one('business', 'uid', business_id)
+        try:
+            existing_business = self._graph.find_one('business', 'uid', business_id)
+        except Exception as exc:
+            raise DatabaseFindError()
+
         if existing_business:
             return existing_business.properties
-
-        return {"msg":"No business found for this id"}
+        else:
+            raise DatabaseRecordNotFound
 
     def checkin_user(self, business_id, user_object):
         business = self.find_business(business_id)
-        user = self.find_user_by_id(user_object)
+        user = self.find_single_user('uid', user_object)
         return self._graph.create(rel(business, "CHECKIN", user))[0].properties

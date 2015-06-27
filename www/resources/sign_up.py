@@ -1,3 +1,4 @@
+
 __author__ = 'Mepla'
 
 import logging
@@ -9,6 +10,8 @@ from www import utils
 from www.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
 from www.databases.factories import DatabaseFactory
+from www.databases.database_drivers import DatabaseRecordNotFound
+from filtering_response_objects import filter_user_info
 
 number_of_allowed_users_with_udid = 3
 
@@ -29,7 +32,7 @@ class SignUp(Resource):
 
         try:
             validate_json(body, signup_schema)
-            logging.info('Client requested for sign up with payload: \n{}'.format(pprint.pformat(body)))
+            logging.debug('Client requested for sign up with payload: \n{}'.format(pprint.pformat(body)))
         except JsonValidationException as exc:
             msg = {'message': exc.message}
             logging.debug(msg)
@@ -41,7 +44,10 @@ class SignUp(Resource):
             logging.error(msg)
             return msg, 400
 
-        user_exists = self.graph_db.find_user(email)
+        try:
+            user_exists = self.graph_db.find_single_user('email', email)
+        except DatabaseRecordNotFound:
+            user_exists = False
 
         if user_exists:
             msg = {'message': 'A user is already registered with this email address: {}'.format(email)}
@@ -49,7 +55,7 @@ class SignUp(Resource):
             return msg, 400
 
         udid = body.get('udid')
-        more_than_max_udid = self.graph_db.users_with_udid(udid) >= number_of_allowed_users_with_udid
+        more_than_max_udid = self.graph_db.users_with_udid_count(udid) >= number_of_allowed_users_with_udid
 
         if more_than_max_udid:
             msg = {'message': 'More than {} users are signed up with this udid: {}'
@@ -62,4 +68,4 @@ class SignUp(Resource):
         hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
         body['password'] = hashed_password
 
-        return self.graph_db.create_new_user(**body)
+        return filter_user_info(self.graph_db.create_new_user(**body))
