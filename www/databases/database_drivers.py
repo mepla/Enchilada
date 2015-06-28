@@ -87,11 +87,18 @@ class Neo4jDatabase(GraphDatabaseBase):
     def find_single_user(self, key, value):
         try:
             existing_user = self._graph.find_one('user', key, value)
+            checkin_relations = self._graph.match(start_node=existing_user, rel_type="CHECK_IN")
         except Exception as exc:
             raise DatabaseFindError()
 
         if existing_user:
-            return existing_user
+            existing_user_copy = dict(existing_user.properties)
+            if checkin_relations:
+                checkins_list = list()
+                for checkin in checkin_relations:
+                    checkins_list.append(dict(checkin.properties))
+                existing_user_copy["checkins"] = checkins_list
+            return existing_user_copy
         else:
             raise DatabaseRecordNotFound
 
