@@ -6,7 +6,8 @@ from www.resources.json_schemas import validate_json, JsonValidationException, b
 from flask import request
 import logging
 from www.authentication.oauth2 import OAuth2Provider
-from www.databases.database_drivers import DatabaseRecordNotFound
+from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult
+
 
 class CheckIn(Resource):
     def __init__(self):
@@ -39,3 +40,14 @@ class CheckIn(Resource):
             return msg, 400
 
         return relation
+
+    @OAuth2Provider.check_access_token
+    def get(self, uid, bid):
+        try:
+            response = self.graph_db.checkins_for_business(bid)
+        except DatabaseEmptyResult:
+            msg = {'message': 'There is no check_ins for this business.'}
+            logging.debug(msg)
+            return msg, 204
+
+        return response

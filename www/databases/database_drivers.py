@@ -5,6 +5,8 @@ from uuid import uuid4
 from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
 import time
+from operator import itemgetter
+
 
 class DatabaseFindError(Exception):
     pass
@@ -18,7 +20,8 @@ class DatabaseRecordNotFound(Exception):
 class DatabaseNotFound(Exception):
     pass
 
-
+class DatabaseEmptyResult(Exception):
+    pass
 
 class GraphDatabaseBase(object):
     pass
@@ -125,6 +128,34 @@ class Neo4jDatabase(GraphDatabaseBase):
         else:
             raise DatabaseRecordNotFound
 
+    def checkins_for_business(self, bid):
+        try:
+            business = self._graph.find_one('business', 'bid', bid)
+            if not business:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        try:
+            results = self._graph.match(None, "CHECK_IN", business)
+            if not results:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult
+
+        print time.time()
+        response_list = list()
+        for res in results:
+            user = res.start_node
+            timestamps = res.properties['timestamps'].split(' ')
+            for t in timestamps:
+                response_list.append({'timestamp': t, 'uid': user.properties['uid'],
+                                      'name': user.properties['f_name'] + ' ' + user.properties['l_name']})
+        print time.time()
+
+        response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
+        return response_list
+
     def checkin_user(self, business_id, user_id):
         try:
             business = self._graph.find_one('business', 'bid', business_id)
@@ -133,7 +164,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         except Exception as exc:
             raise DatabaseRecordNotFound()
 
-        user = self.find_single_user('uid', user_id)
+        user = self._graph.find_one('user', 'uid', user_id)
 
         existing_relation = self._graph.match_one(user, "CHECK_IN", business)
         if existing_relation:
