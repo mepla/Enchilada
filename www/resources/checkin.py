@@ -34,7 +34,7 @@ class CheckIn(Resource):
         try:
             relation = self.graph_db.checkin_user(bid, uid)
         except DatabaseRecordNotFound:
-            msg = {'message': 'The business to tried to check in doe not exist.'}
+            msg = {'message': 'The business you tried to check into does not exist.'}
             logging.debug(msg)
             return msg, 400
 

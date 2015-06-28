@@ -121,8 +121,10 @@ class Neo4jDatabase(GraphDatabaseBase):
     def checkin_user(self, business_id, user_id):
         try:
             business = self._graph.find_one('business', 'bid', business_id)
+            if not business:
+                raise Exception()
         except Exception as exc:
-            raise DatabaseFindError()
+            raise DatabaseRecordNotFound()
 
         user = self.find_single_user('uid', user_id)
 
@@ -130,8 +132,6 @@ class Neo4jDatabase(GraphDatabaseBase):
         if existing_relation:
             existing_relation.properties['count'] += 1
             existing_relation.properties['timestamps'] = str(time.time()) + ' ' + existing_relation.properties['timestamps']
-            print(existing_relation.properties['count'], existing_relation.properties['timestamps'])
-            # self._graph.save(existing_relation)
             existing_relation.push()
             return existing_relation.properties
         else:
