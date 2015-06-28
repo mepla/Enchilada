@@ -25,7 +25,7 @@ class User(Resource):
 
         try:
             existing_user = self.graph_db.find_single_user('uid', user_id)
-            return filter_user_info(existing_user.properties)
+            return filter_user_info(existing_user)
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}
             logging.info(msg)
