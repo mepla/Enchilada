@@ -1,30 +1,24 @@
-__author__ = 'Mepla'
-
-import logging
+__author__ = 'Naja'
 from flask_restful import Resource
+from www.authentication.oauth2 import OAuth2Provider
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
-from www.authentication.oauth2 import OAuth2Provider
-from filtering_results import filter_user_info
+import logging
 
 
-class Users(Resource):
+class UsersCheckin(Resource):
+
     def __init__(self):
-        pass
-
-
-class User(Resource):
-    def __init__(self):
-        super(User, self).__init__()
+        super(UsersCheckin, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @OAuth2Provider.check_access_token
-    def get(self, user_id, uid):
+    def get(self, user_id):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
 
         try:
-            existing_user = self.graph_db.find_single_user('uid', user_id)
-            return filter_user_info(existing_user)
+            users_checkin = self.graph_db.find_single_user_checkins(user_id)
+            return users_checkin
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}
             logging.info(msg)
@@ -34,5 +28,4 @@ class User(Resource):
             msg = {'message': 'User does not exist.'}
             logging.debug(msg)
             return msg, 404
-
 
