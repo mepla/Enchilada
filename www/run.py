@@ -7,7 +7,6 @@ from resources.login import Login
 from resources.users import User, Users
 from www.resources.business_app_profile import BusinessProfile
 from www.resources.checkin import CheckIn
-from www.resources.users_checkin import UsersCheckin
 from www import api, app
 
 
@@ -17,15 +16,13 @@ def initialize_app():
 
     py2neo_logger = logging.getLogger('httpstream')
     py2neo_logger.setLevel(logging.CRITICAL)
-    # *** Users ***
+
     api.add_resource(SignUp, '/signup')
     api.add_resource(Login, '/login')
-    api.add_resource(Users, '/users')
-    api.add_resource(User, '/users/<string:user_id>')
-    api.add_resource(UsersCheckin, '/users/<string:user_id>/checkins')
-    # *** Business Profile ***
     api.add_resource(BusinessProfile, '/business/<string:bid>')
     api.add_resource(CheckIn, '/businesses/<string:bid>/checkins')
+    api.add_resource(Users, '/users')
+    api.add_resource(User, '/users/<string:user_id>')
 
 if __name__ == '__main__':
     initialize_app()
