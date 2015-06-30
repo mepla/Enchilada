@@ -1,19 +1,32 @@
 __author__ = 'Naja'
-import os
+
 import unittest
-import tempfile
+from www import app, api
+from www.run import initialize_app
+import base64
+import json
 
 class FlaskrTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db_fd, flaskr.app.config['DATABASE'] = tempfile.mkstemp()
-        flaskr.app.config['TESTING'] = True
-        self.app = flaskr.app.test_client()
-        flaskr.init_db()
+        self.app = app.test_client()
+        self.api = api
+        initialize_app()
 
     def tearDown(self):
-        os.close(self.db_fd)
-        os.unlink(flaskr.app.config['DATABASE'])
+        pass
+
+    def test_login(self):
+        resp = self._login('s@n.com', '123456', 'test_client', 'X_secret_X', 'all')
+        resp_data = json.loads(resp.data)
+        self.assertIsInstance(resp_data, dict)
+
+    def _login(self, username, password, client_id, client_secret, scope):
+        authorization_header = base64.b64encode(client_id + ':' + client_secret)
+        return self.app.post('/login?grant_type=password',
+                             data={'username': username, 'password': password},
+                             headers={'scope': scope, 'Authorization': 'Basic {}'.format(authorization_header),
+                                      'Content-Type': 'application/json'})
 
 if __name__ == '__main__':
     unittest.main()

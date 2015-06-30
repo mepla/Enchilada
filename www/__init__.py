@@ -19,5 +19,7 @@ oauth2 = OAuth2Provider()
 def all_exception_response(e):
     return jsonify({'message': 'Internal server error. There is nothing you can do at this moment.'}), 500
 
-
+# @app.errorhandler(404)
+def not_found(e):
+    return jsonify({'message': 'URL Not found!'}), 404
 
