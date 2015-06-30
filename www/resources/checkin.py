@@ -25,14 +25,6 @@ class CheckIn(Resource):
             return msg, 400
 
         try:
-            validate_json(data, business_app_schema)
-            logging.info('Client requested for sign up with payload: {}'.format(data))
-        except JsonValidationException as exc:
-            msg = {'message': exc.message}
-            logging.debug(msg)
-            return msg, 400
-
-        try:
             relation = self.graph_db.checkin_user(bid, uid)
         except DatabaseRecordNotFound:
             msg = {'message': 'The business you tried to check into does not exist.'}

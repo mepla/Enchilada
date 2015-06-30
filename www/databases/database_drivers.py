@@ -101,14 +101,12 @@ class Neo4jDatabase(GraphDatabaseBase):
     def find_single_user_checkins(self, user_id):
         existing_user = self.find_single_user("uid", user_id)
         try:
-            checkin_relations = self._graph.match(start_node=existing_user, rel_type="CHECK_IN")
+            checkin_relations = list(self._graph.match(start_node=existing_user.bind, rel_type="CHECK_IN"))
         except Exception as exc:
             raise DatabaseFindError()
         if checkin_relations:
-            checkins_list = list()
-            for checkin in checkin_relations:
-                checkins_list.append(dict(checkin.properties))
-            return checkins_list
+            print(checkin_relations)
+            return checkin_relations
         else:
             raise DatabaseRecordNotFound
     def users_with_udid_count(self, udid):

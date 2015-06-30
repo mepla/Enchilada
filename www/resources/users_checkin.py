@@ -13,7 +13,7 @@ class UsersCheckin(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @OAuth2Provider.check_access_token
-    def get(self, user_id):
+    def get(self, user_id, uid):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
 
         try:
