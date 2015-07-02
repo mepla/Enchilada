@@ -25,7 +25,7 @@ class UsersCheckin(Resource):
             logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
             return msg, 500
         except DatabaseRecordNotFound:
-            msg = {'message': 'User does not exist.'}
+            msg = {'message': 'User does not exist or does not have any checkins.'}
             logging.debug(msg)
             return msg, 404
 
