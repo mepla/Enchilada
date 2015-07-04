@@ -14,12 +14,21 @@ def filter_user_info(user_info):
 
     return user_info_copy
 
-def filter_general_document_db_record(dic):
+def filter_single_general_document_db_record(doc):
 
-    if 'id' in dic:
-        del(dic['id'])
+    if 'id' in doc:
+        del(doc['id'])
 
-    if '_id' in dic:
-        del(dic['_id'])
+    if '_id' in doc:
+        del(doc['_id'])
 
-    return dic
+    return doc
+
+def filter_general_document_db_record(doc):
+    if isinstance(doc, dict):
+        return filter_single_general_document_db_record(doc)
+    if isinstance(doc, list):
+        return_list = []
+        for single_doc in doc:
+            return_list.append(filter_single_general_document_db_record(single_doc))
+        return return_list

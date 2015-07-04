@@ -70,6 +70,18 @@ business_app_schema = '''
 }
 '''
 
+business_category_add_single_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "name":  { "type": "string" },
+        "parent":  { "type": "string" }
+    },
+    "additionalProperties": false,
+    "required": [ "name"]
+}
+'''
+
 def validate_json(json_data, schema):
     try:
         if isinstance(schema, str):

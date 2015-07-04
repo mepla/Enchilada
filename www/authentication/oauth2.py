@@ -51,8 +51,8 @@ class OAuth2Provider(object):
             raise ClientDoesNotExist()
 
         doc = {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer',
-               'scope': scope, 'uid': uid, 'client_id': client_id, 'type': 'tokens', 'issue_date': time.time()}
-        self.auth_db.save(doc)
+               'scope': scope, 'uid': uid, 'client_id': client_id, 'issue_date': time.time()}
+        self.auth_db.save(doc, 'tokens')
 
         return {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer', 'scope': scope}
 

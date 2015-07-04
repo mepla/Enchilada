@@ -50,14 +50,15 @@ class MongoDatabase(DocumentDatabaseBase):
         else:
             raise DatabaseNotFound('The database you requested was not found: {}'.format(db))
 
-    def save(self, doc):
-        if 'type' not in doc:
-            raise DatabaseSaveError('Your document must include a \'type\'.')
-
-        doc_type = doc['type']
+    def save(self, doc, doc_type, multiple=False):
+        if not doc_type:
+            raise DatabaseSaveError('No doc_type provided.')
 
         try:
-            obj = self._mongo_db[doc_type].insert_one(doc)
+            if multiple:
+                objs = self._mongo_db[doc_type].insert_many(doc, ordered=False)
+            else:
+                obj = self._mongo_db[doc_type].insert_one(doc)
         except Exception as exc:
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()

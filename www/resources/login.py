@@ -62,6 +62,7 @@ class Login(Resource):
                 validate_json(data, login_schema)
             except JsonValidationException as exc:
                 msg = {'message': exc.message}
+                logging.error(msg)
                 return msg, 400
 
             username = data.get('username')

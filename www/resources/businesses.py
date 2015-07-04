@@ -1,12 +1,18 @@
+from cement.core import exc
+from www.databases.database_drivers import DatabaseSaveError
+
 __author__ = 'Naja'
 
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
-from www.resources.json_schemas import validate_json, JsonValidationException, business_app_schema, business_signup_schema
+from www.resources.json_schemas import validate_json, JsonValidationException, business_app_schema, business_signup_schema, \
+    business_category_add_single_schema
 from flask import request
+from www.resources.filtering_results import filter_general_document_db_record
+
 import logging
-import pprint
 from www.authentication.oauth2 import OAuth2Provider
+import uuid
 
 class BusinessProfile(Resource):
     def __init__(self):
@@ -36,3 +42,32 @@ class BusinessCategory(Resource):
             msg = {'Message': 'The collection you asked for is empty'}
             logging.error(msg)
             return msg, 204
+
+    def post(self):
+        logging.debug('Client requested to create a business category.')
+        data = request.get_json(force=True)
+
+        try:
+            if isinstance(data, dict):
+                validate_json(data, business_category_add_single_schema)
+                data['bcid'] = uuid.uuid4().hex
+                self.doc_db.save(data, 'business_categories')
+                return filter_general_document_db_record(data), 200
+
+            elif isinstance(data, list):
+                for doc in data:
+                    validate_json(doc, business_category_add_single_schema)
+                    doc['bcid'] = uuid.uuid4().hex
+
+                self.doc_db.save(data, 'business_categories', True)
+                return filter_general_document_db_record(data), 200
+
+        except JsonValidationException as exc:
+            msg = {'message': exc.message}
+            logging.error(msg)
+            return msg, 400
+
+        except DatabaseSaveError as exc:
+            msg = {'message': 'Your changes may have been done partially or not at all.'}
+            logging.error(msg)
+            return msg, 500
