@@ -4,6 +4,7 @@ import logging
 from uuid import uuid4
 from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
+from www.resources.filtering_results import filter_general_document_db_record
 import time
 from operator import itemgetter
 
@@ -63,13 +64,17 @@ class MongoDatabase(DocumentDatabaseBase):
 
     def find_doc(self, key, value, doc_type, limit=1):
         try:
+            find_predict = {}
+            if key and value:
+                find_predict[key] = value
+
             if limit == 1:
-                return self._mongo_db[doc_type].find_one({key: value})
+                return self._mongo_db[doc_type].find_one(find_predict)
             else:
-                cursor = self._mongo_db[doc_type].find({key: value})
+                cursor = self._mongo_db[doc_type].find(find_predict)
                 return_list = []
                 for doc in cursor:
-                    return_list.append(doc)
+                    return_list.append(filter_general_document_db_record(doc))
                 return return_list
 
         except Exception as exc:
