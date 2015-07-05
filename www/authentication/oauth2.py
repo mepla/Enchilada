@@ -4,6 +4,7 @@ import time
 import logging
 from uuid import uuid4
 from functools import wraps
+import re
 
 from flask import request
 
@@ -20,6 +21,9 @@ class ClientDoesNotExist(Exception):
     pass
 
 class ClientWithWrongScopes(Exception):
+    pass
+
+class AccessToResourceDenied(Exception):
     pass
 
 class OAuth2Provider(object):
@@ -76,8 +80,7 @@ class OAuth2Provider(object):
             logging.error(msg)
             return msg, 400
 
-    @staticmethod
-    def check_access_token(f):
+    def check_access_token(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
 
@@ -100,15 +103,14 @@ class OAuth2Provider(object):
 
             logging.debug('Authorizing resource owner with access token: {}'.format(token_type + token))
 
-            auth_db = DatabaseFactory().get_database_driver('document/auth')
-            doc = auth_db.find_doc('access_token', token, 'tokens')
-            if doc:
-                if not client_id == doc.get('client_id'):
+            token_doc = self.auth_db.find_doc('access_token', token, 'tokens')
+            if token_doc:
+                if not client_id == token_doc.get('client_id'):
                     msg = {'message': 'Your client_id does not match with your access token.'}
                     logging.error(msg)
                     return msg, 401
 
-                if time.time() - doc.get('issue_date') > doc.get('expires_in'):
+                if time.time() - token_doc.get('issue_date') > token_doc.get('expires_in'):
                     msg = {'message': 'Your access token is expired, please refresh it using your refresh token.'}
                     logging.error(msg)
                     return msg, 401
@@ -117,8 +119,49 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
-            logging.info('Resource owner authenticated successfully. client_id: {}  uid: {}'.format(doc.get('client_id'), doc.get('uid')))
+            logging.info('Resource owner authenticated successfully. client_id: {}  uid: {}'.format(token_doc.get('client_id'), token_doc.get('uid')))
 
-            return f(*args, **dict(kwargs.items() + {'uid': doc.get('uid')}.items()))
+            path = request.path.replace('self', token_doc.get('uid'))
+
+            try:
+                self.check_allowed_scopes(request.method.lower() + ' ' + path.lower(), token_doc.get('scope'), token_doc.get('uid'))
+            except DatabaseFindError as exc:
+                msg = {'message': 'Could not find scope in defined scopes: {}'.format(token_doc.get('scope'))}
+                logging.error(msg)
+                return msg, 500
+
+            except AccessToResourceDenied as exc:
+                msg = {'message': 'Your access token has a scope of `{}` which is not capable of requesting resource at {}'.format(token_doc.get('scope'), path)}
+                logging.error(msg)
+                return msg, 403
+
+            if path != request.path and 'user_id' in kwargs:
+                kwargs['user_id'] = token_doc.get('uid')
+
+            return f(*args, **dict(kwargs.items() + {'uid': token_doc.get('uid')}.items()))
 
         return wrapper
+
+    def check_allowed_scopes(self, method_uri, scope, uid):
+        logging.debug('Checking scope authorization for request: {}'.format(method_uri))
+
+        scope_doc = self.auth_db.find_doc('scope', scope, 'scopes')
+
+        if not scope_doc:
+            raise DatabaseFindError
+
+        all_scopes = scope_doc['allowed']
+        regex_list = []
+        for i in range(0, len(all_scopes)):
+            reg_scope = all_scopes[i].replace('{self}', uid)
+            regex_list.append(reg_scope)
+
+        regex = '|'.join(regex_list)
+
+        result = re.match(regex, method_uri)
+
+        if not result:
+            raise AccessToResourceDenied()
+
+        logging.debug('User ({}) is authorized to request resource ({})'.format(uid, method_uri))
+

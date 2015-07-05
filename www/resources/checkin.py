@@ -5,7 +5,7 @@ from www.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, business_app_schema, business_signup_schema
 from flask import request
 import logging
-from www.authentication.oauth2 import OAuth2Provider
+from www import oauth2
 from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult
 
 
@@ -14,7 +14,7 @@ class CheckIn(Resource):
         super(CheckIn, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    @OAuth2Provider.check_access_token
+    @oauth2.check_access_token
     def post(self, bid, uid):
         logging.info('Client requested for checkin.')
         try:
@@ -33,7 +33,7 @@ class CheckIn(Resource):
 
         return relation
 
-    @OAuth2Provider.check_access_token
+    @oauth2.check_access_token
     def get(self, uid, bid):
         try:
             response = self.graph_db.checkins_for_business(bid)

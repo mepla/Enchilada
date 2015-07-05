@@ -11,7 +11,7 @@ from flask import request
 from www.resources.filtering_results import filter_general_document_db_record
 
 import logging
-from www.authentication.oauth2 import OAuth2Provider
+from www import oauth2
 import uuid
 
 class BusinessProfile(Resource):
@@ -19,7 +19,7 @@ class BusinessProfile(Resource):
         super(BusinessProfile, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    @OAuth2Provider.check_access_token
+    @oauth2.check_access_token
     def get(self, uid, bid):
         logging.info('Client requested for business profile.')
         return self.graph_db.find_business(bid)
@@ -30,7 +30,7 @@ class BusinessCategory(Resource):
         super(BusinessCategory, self).__init__()
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
-    @OAuth2Provider.check_access_token
+    @oauth2.check_access_token
     def get(self, uid):
         logging.debug('Client requested Business Categories.')
         resp = self.doc_db.find_doc(None, None, 'business_categories', 100)

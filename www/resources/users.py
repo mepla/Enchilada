@@ -4,21 +4,21 @@ import logging
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
-from www.authentication.oauth2 import OAuth2Provider
+from www import oauth2
 from filtering_results import filter_user_info
 
-
+# /users
 class Users(Resource):
     def __init__(self):
         pass
 
-
+# /users/{user_id}
 class User(Resource):
     def __init__(self):
         super(User, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    @OAuth2Provider.check_access_token
+    @oauth2.check_access_token
     def get(self, user_id, uid):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
 
