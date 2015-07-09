@@ -1,6 +1,19 @@
 __author__ = 'Mepla'
 
 
+class PatchError(Exception):
+    pass
+
+class PatchReadOnlyViolation(PatchError):
+    pass
+
+class PatchExcessiveAddViolation(PatchError):
+    pass
+
+class PatchTypeViolation(PatchError):
+    pass
+
+
 def filter_user_info(user_info):
     user_info_copy = dict(user_info)
     if 'password' in user_info_copy:
@@ -32,3 +45,22 @@ def filter_general_document_db_record(doc):
         for single_doc in doc:
             return_list.append(filter_single_general_document_db_record(single_doc))
         return return_list
+
+class Patch(object):
+    @staticmethod
+    def patch_doc(patch_array, doc, read_only_paths):
+        new_doc = dict(doc)
+        for operation in patch_array:
+            op = operation['op']
+            path = operation['path']
+            value = operation['value']
+
+            if path in read_only_paths:
+                raise PatchReadOnlyViolation({})
+
+            if op == 'replace':
+                pass
+            elif op == 'add':
+                pass
+            elif op == 'remove':
+                pass

@@ -8,7 +8,7 @@ from www.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, business_app_schema, business_signup_schema, \
     business_category_add_single_schema
 from flask import request
-from www.resources.filtering_results import filter_general_document_db_record
+from www.resources.helpers import filter_general_document_db_record
 
 import logging
 from www import oauth2

@@ -131,7 +131,7 @@ class OAuth2Provider(object):
                 return msg, 500
 
             except AccessToResourceDenied as exc:
-                msg = {'message': 'Your access token has a scope of `{}` which is not capable of requesting resource at {}'.format(token_doc.get('scope'), path)}
+                msg = {'message': 'Your access token has a scope of `{}` which is not capable of requesting resource at {} with method {}'.format(token_doc.get('scope'), path, request.method.upper())}
                 logging.error(msg)
                 return msg, 403
 
@@ -145,12 +145,12 @@ class OAuth2Provider(object):
     def check_allowed_scopes(self, method_uri, scope, uid):
         logging.debug('Checking scope authorization for request: {}'.format(method_uri))
 
-        scope_doc = self.auth_db.find_doc('scope', scope, 'scopes')
+        scope_doc = self.auth_db.find_doc('doc', 'all_scopes', 'scopes')
 
         if not scope_doc:
             raise DatabaseFindError
 
-        all_scopes = scope_doc['allowed']
+        all_scopes = scope_doc['scopes'][scope]
         regex_list = []
         for i in range(0, len(all_scopes)):
             reg_scope = all_scopes[i].replace('{self}', uid)

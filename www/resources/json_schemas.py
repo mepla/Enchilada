@@ -28,6 +28,24 @@ signup_schema = '''
 }
 '''
 
+user_put_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "f_name":  { "type": "string" },
+        "l_name": { "type": "string" },
+        "email": { "type": "string" },
+        "gender": { "type": "string" },
+        "birth_date": { "type": "string" },
+        "device": { "type": "string" },
+        "udid": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+    },
+    "additionalProperties": false
+}
+'''
+
 login_schema = '''
 {
     "type": "object",
@@ -79,6 +97,22 @@ business_category_add_single_schema = '''
     },
     "additionalProperties": false,
     "required": [ "name"]
+}
+'''
+
+patch_schema = '''
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties":{
+            "op":  { "type": "string" },
+            "path":  { "type": "string" },
+            "value":  { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": [ "op", "path", "value"]
+    }
 }
 '''
 

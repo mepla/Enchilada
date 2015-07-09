@@ -4,7 +4,7 @@ import logging
 from uuid import uuid4
 from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
-from www.resources.filtering_results import filter_general_document_db_record
+from www.resources.helpers import filter_general_document_db_record
 import time
 from operator import itemgetter
 
@@ -18,6 +18,9 @@ class DatabaseSaveError(Exception):
 class DatabaseRecordNotFound(Exception):
     pass
 
+class DocumentNotUpdated(Exception):
+    pass
+
 class DatabaseNotFound(Exception):
     pass
 
@@ -27,10 +30,8 @@ class DatabaseEmptyResult(Exception):
 class GraphDatabaseBase(object):
     pass
 
-
 class DocumentDatabaseBase(object):
     pass
-
 
 class MongoDatabase(DocumentDatabaseBase):
     def __init__(self, host='localhost', port=27017, db='docs'):
@@ -87,15 +88,29 @@ class Neo4jDatabase(GraphDatabaseBase):
         neo4j_address = host + ':' + str(port)
         authenticate(neo4j_address, username, password)
         self._graph = Graph('http://' + neo4j_address + '/db/data')
+        self.docs_in_memory = {}
+
+    def update(self, doc):
+        existing_doc = self.docs_in_memory[doc.get('uid')] or self.docs_in_memory[doc.get('bid')] or self.docs_in_memory[doc.get('rid')] or self.docs_in_memory[doc.get('id')]
+        if existing_doc:
+            try:
+                for key in doc.keys():
+                    existing_doc[key] = doc[key]
+                existing_doc.push()
+                return existing_doc.properties
+            except Exception as exc:
+                DocumentNotUpdated()
+        else:
+            raise DocumentNotUpdated()
 
     def create_new_user(self, **kwargs):
-        kwargs['id'] = uuid4().hex
         new_user = Node('user', **kwargs)
         return self._graph.create(new_user)[0].properties
 
     def find_single_user(self, key, value):
         try:
             existing_user = self._graph.find_one('user', key, value)
+            self.docs_in_memory[existing_user.properties.get('uid')] = existing_user
         except Exception as exc:
             raise DatabaseFindError()
 
@@ -194,6 +209,6 @@ class Neo4jDatabase(GraphDatabaseBase):
         else:
             new_id = str(uuid4())
             timestamps = str(time.time())
-            new_relation = Relationship(user, 'CHECK_IN', business, id=new_id, count=1, timestamps=timestamps)
+            new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, timestamps=timestamps)
             self._graph.create(new_relation)
             return new_relation.properties
