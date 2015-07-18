@@ -8,7 +8,7 @@ from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
 from www import oauth2
-from helpers import filter_user_info, Patch
+from helpers import Patch, filter_general_document_db_record
 
 # /users
 class Users(Resource):
@@ -126,3 +126,15 @@ class User(Resource):
             logging.error('Document could not be updated because it was not fetched before update.')
             msg = {'message': 'Internal server error'}
             return msg, 500
+
+
+
+def filter_user_info(user_info):
+    user_info_copy = dict(user_info)
+    user_info_copy = filter_general_document_db_record(user_info_copy)
+    if 'password' in user_info_copy:
+        del(user_info_copy['password'])
+    if 'udid' in user_info_copy:
+        del(user_info_copy['udid'])
+
+    return user_info_copy

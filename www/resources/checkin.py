@@ -17,12 +17,12 @@ class CheckIn(Resource):
     @oauth2.check_access_token
     def post(self, bid, uid):
         logging.info('Client requested for checkin.')
-        try:
-            data = request.get_json(force=True)
-        except Exception as exc:
-            msg = {'msg': exc.message}
-            logging.error(msg)
-            return msg, 400
+        # try:
+        #     data = request.get_json(force=True)
+        # except Exception as exc:
+        #     msg = {'message': exc.message}
+        #     logging.error(msg)
+        #     return msg, 400
 
         try:
             relation = self.graph_db.checkin_user(bid, uid)

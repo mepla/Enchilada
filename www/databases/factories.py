@@ -5,6 +5,7 @@ import logging
 from www.databases.database_drivers import Neo4jDatabase, MongoDatabase, DatabaseNotFound
 from www.config import configs
 
+
 class Singleton(type):
     _instances = {}
 
@@ -12,6 +13,7 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
 
 class DatabaseFactory(object):
     __metaclass__ = Singleton

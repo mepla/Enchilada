@@ -12,26 +12,34 @@ from operator import itemgetter
 class DatabaseFindError(Exception):
     pass
 
+
 class DatabaseSaveError(Exception):
     pass
+
 
 class DatabaseRecordNotFound(Exception):
     pass
 
+
 class DocumentNotUpdated(Exception):
     pass
+
 
 class DatabaseNotFound(Exception):
     pass
 
+
 class DatabaseEmptyResult(Exception):
     pass
+
 
 class GraphDatabaseBase(object):
     pass
 
+
 class DocumentDatabaseBase(object):
     pass
+
 
 class MongoDatabase(DocumentDatabaseBase):
     def __init__(self, host='localhost', port=27017, db='docs'):
@@ -64,24 +72,35 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
 
-    def find_doc(self, key, value, doc_type, limit=1):
+    def find_doc(self, key, value, doc_type, limit=1, conditions=None):
         try:
-            find_predict = {}
+            find_predicate = {}
+            if conditions:
+                find_predicate = conditions
+
             if key and value:
-                find_predict[key] = value
+                find_predicate[key] = value
 
             if limit == 1:
-                return self._mongo_db[doc_type].find_one(find_predict)
+                doc = self._mongo_db[doc_type].find_one(find_predicate)
+                if not doc:
+                    raise DatabaseRecordNotFound
+                return doc
             else:
-                cursor = self._mongo_db[doc_type].find(find_predict)
+                cursor = self._mongo_db[doc_type].find(find_predicate)
                 return_list = []
                 for doc in cursor:
                     return_list.append(filter_general_document_db_record(doc))
+                if len(return_list) < 1:
+                    raise DatabaseEmptyResult()
                 return return_list
 
+        except DatabaseRecordNotFound as exc:
+            raise exc
         except Exception as exc:
-            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
+            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db,type(exc)))
             raise DatabaseFindError()
+
 
 class Neo4jDatabase(GraphDatabaseBase):
     def __init__(self, host='localhost', port=7474, username='neo4', password='new4j'):

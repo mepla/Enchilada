@@ -116,6 +116,23 @@ patch_schema = '''
 }
 '''
 
+survey_result_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "stid": { "type": "string" },
+        "answers":  {
+            "type": "object",
+            "properties":{
+                "^[0-9]+$": {"type": "string"}
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": [ "stid", "answers"]
+}
+'''
+
 def validate_json(json_data, schema):
     try:
         if isinstance(schema, str):

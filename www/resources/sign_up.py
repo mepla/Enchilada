@@ -11,7 +11,7 @@ from www.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseRecordNotFound
-from helpers import filter_user_info
+from www.resources.users import filter_user_info
 
 number_of_allowed_users_with_udid = 3
 
