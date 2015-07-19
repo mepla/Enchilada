@@ -14,6 +14,7 @@ import logging
 from www import oauth2
 import uuid
 
+
 class BusinessProfile(Resource):
     def __init__(self):
         super(BusinessProfile, self).__init__()

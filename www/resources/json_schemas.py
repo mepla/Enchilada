@@ -133,6 +133,19 @@ survey_result_schema = '''
 }
 '''
 
+message_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "subject":  { "type": "string" },
+        "body":  { "type": "string" }
+    },
+    "additionalProperties": false,
+    "required": [ "body"]
+}
+'''
+
+
 def validate_json(json_data, schema):
     try:
         if isinstance(schema, str):

@@ -9,6 +9,7 @@ from www.resources.businesses import BusinessProfile, BusinessCategory
 from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
+from www.resources.business_messages import BusinessMessage, BusinessMessages
 from www import api, app
 
 
@@ -31,6 +32,8 @@ def initialize_app():
     api.add_resource(BusinessSurveyResult, '/businesses/<string:bid>/surveys/<string:survey_id>')
     api.add_resource(BusinessSurveyTemplates, '/businesses/<string:bid>/survey_templates')
     api.add_resource(BusinessSurveyTemplate, '/businesses/<string:bid>/survey_templates/<string:survey_id>')
+    api.add_resource(BusinessMessages, '/businesses/<string:bid>/messages')
+    api.add_resource(BusinessMessage, '/businesses/<string:bid>/messages/<string:mid>')
 
 if __name__ == '__main__':
     initialize_app()

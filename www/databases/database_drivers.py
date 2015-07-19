@@ -84,7 +84,7 @@ class MongoDatabase(DocumentDatabaseBase):
             if limit == 1:
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
                 if not doc:
-                    raise DatabaseRecordNotFound
+                    raise DatabaseRecordNotFound()
                 return doc
             else:
                 cursor = self._mongo_db[doc_type].find(find_predicate)

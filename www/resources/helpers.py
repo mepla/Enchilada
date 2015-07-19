@@ -4,14 +4,18 @@ __author__ = 'Mepla'
 class PatchError(Exception):
     pass
 
+
 class PatchReadOnlyViolation(PatchError):
     pass
+
 
 class PatchExcessiveAddViolation(PatchError):
     pass
 
+
 class PatchTypeViolation(PatchError):
     pass
+
 
 def filter_single_general_document_db_record(doc):
 
@@ -23,6 +27,7 @@ def filter_single_general_document_db_record(doc):
 
     return doc
 
+
 def filter_general_document_db_record(doc):
     if isinstance(doc, dict):
         return filter_single_general_document_db_record(doc)
@@ -31,6 +36,7 @@ def filter_general_document_db_record(doc):
         for single_doc in doc:
             return_list.append(filter_single_general_document_db_record(single_doc))
         return return_list
+
 
 class Patch(object):
     @staticmethod
