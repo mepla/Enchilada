@@ -97,6 +97,10 @@ class MongoDatabase(DocumentDatabaseBase):
 
         except DatabaseRecordNotFound as exc:
             raise exc
+
+        except DatabaseEmptyResult as exc:
+            raise exc
+
         except Exception as exc:
             logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db,type(exc)))
             raise DatabaseFindError()

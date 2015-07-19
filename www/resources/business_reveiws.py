@@ -1,13 +1,12 @@
 __author__ = 'Mepla'
 
-
 import time
 from www.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
 
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
-from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
+from www.resources.json_schemas import validate_json, JsonValidationException, message_schema, review_schema
 from flask import request
 from www.resources.helpers import filter_general_document_db_record
 
@@ -16,14 +15,14 @@ from www import oauth2
 import uuid
 
 
-class BusinessMessages(Resource):
+class BusinessReviews(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     def get(self, uid, bid):
         try:
-            messages = self.doc_db.find_doc('bid', bid, 'business_messages', limit=10)
+            reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=10)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
@@ -36,11 +35,11 @@ class BusinessMessages(Resource):
             return msg, 404
 
         except DatabaseEmptyResult as exc:
-            msg = {'message': 'There are no messages.'}
+            msg = {'message': 'There are no reviews.'}
             logging.info(msg)
             return msg, 204
 
-        return filter_general_document_db_record(messages)
+        return filter_general_document_db_record(reviews)
 
     @oauth2.check_access_token
     def post(self, uid, bid):
@@ -52,16 +51,16 @@ class BusinessMessages(Resource):
             return msg, 400
 
         try:
-            validate_json(data, message_schema)
+            validate_json(data, review_schema)
         except JsonValidationException as exc:
             msg = {'message': exc.message}
             logging.error(msg)
             return msg, 400
 
-        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'mid': uuid.uuid4().hex, 'seen': False}
+        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'rid': uuid.uuid4().hex}
 
         try:
-            self.doc_db.save(doc, 'business_messages')
+            self.doc_db.save(doc, 'business_reviews')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}
             logging.error(msg)
@@ -70,14 +69,14 @@ class BusinessMessages(Resource):
         return None, 201
 
 
-class BusinessMessage(Resource):
+class BusinessReview(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
-    def get(self, uid, bid, mid):
+    def get(self, uid, bid, rid):
         try:
-            message = self.doc_db.find_doc('mid', mid, 'business_messages', 1)
+            message = self.doc_db.find_doc('rid', rid, 'business_reviews', 1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
@@ -90,7 +89,7 @@ class BusinessMessage(Resource):
             return msg, 404
 
         except DatabaseEmptyResult as exc:
-            msg = {'message': 'There are no messages.'}
+            msg = {'message': 'There are no reviews.'}
             logging.info(msg)
             return msg, 204
 

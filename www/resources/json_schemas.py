@@ -145,6 +145,19 @@ message_schema = '''
 }
 '''
 
+review_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "subject":  { "type": "string" },
+        "body":  { "type": "string" },
+        "rating":  { "type": "integer" }
+    },
+    "additionalProperties": false,
+    "required": [ "body"]
+}
+'''
+
 
 def validate_json(json_data, schema):
     try:
