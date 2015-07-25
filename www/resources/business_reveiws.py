@@ -9,7 +9,7 @@ from www.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema, review_schema
 from flask import request
 from www.resources.helpers import filter_general_document_db_record
-
+from www.resources.helpers import uuid_with_prefix
 import logging
 from www import oauth2
 import uuid
@@ -57,7 +57,7 @@ class BusinessReviews(Resource):
             logging.error(msg)
             return msg, 400
 
-        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'rid': uuid.uuid4().hex}
+        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid')}
 
         try:
             self.doc_db.save(doc, 'business_reviews')

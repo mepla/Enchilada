@@ -1,7 +1,7 @@
 __author__ = 'Mepla'
 
 import logging
-from uuid import uuid4
+from www.resources.helpers import uuid_with_prefix
 from py2neo import Graph, Node, Relationship, authenticate, rel
 from pymongo import MongoClient
 from www.resources.helpers import filter_general_document_db_record
@@ -102,7 +102,7 @@ class MongoDatabase(DocumentDatabaseBase):
             raise exc
 
         except Exception as exc:
-            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db,type(exc)))
+            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, type(exc)))
             raise DatabaseFindError()
 
 
@@ -133,11 +133,12 @@ class Neo4jDatabase(GraphDatabaseBase):
     def find_single_user(self, key, value):
         try:
             existing_user = self._graph.find_one('user', key, value)
-            self.docs_in_memory[existing_user.properties.get('uid')] = existing_user
         except Exception as exc:
+            print(exc)
             raise DatabaseFindError()
 
         if existing_user:
+            self.docs_in_memory[existing_user.properties.get('uid')] = existing_user
             return dict(existing_user.properties)
         else:
             raise DatabaseRecordNotFound
@@ -170,7 +171,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         return count
 
     def create_new_business(self, **kwargs):
-        kwargs['id'] = uuid4().hex
+        kwargs['bid'] = uuid_with_prefix('bid')
         new_business = Node('business', **kwargs)
         return self._graph.create(new_business)[0].properties
 
@@ -230,7 +231,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             existing_relation.push()
             return existing_relation.properties
         else:
-            new_id = str(uuid4())
+            new_id = uuid_with_prefix('rid')
             timestamps = str(time.time())
             new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, timestamps=timestamps)
             self._graph.create(new_relation)

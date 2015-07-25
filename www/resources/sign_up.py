@@ -3,7 +3,7 @@ __author__ = 'Mepla'
 
 import logging
 import pprint
-from uuid import uuid4
+from www.resources.helpers import uuid_with_prefix
 from flask import request
 from flask_restful import Resource
 from www import utils
@@ -14,6 +14,7 @@ from www.databases.database_drivers import DatabaseRecordNotFound
 from www.resources.users import filter_user_info
 
 number_of_allowed_users_with_udid = 3
+
 
 class SignUp(Resource):
     def __init__(self):
@@ -64,7 +65,9 @@ class SignUp(Resource):
             logging.debug(msg)
             return msg, 400
 
-        body['uid'] = uuid4().hex
+        body['type'] = 'personal'
+        body['uid'] = uuid_with_prefix('uid')
+        body['responsible_for'] = body['uid']
         hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
         body['password'] = hashed_password
 

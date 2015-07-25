@@ -4,7 +4,7 @@ __author__ = 'Mepla'
 import time
 from www.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-
+from www.resources.helpers import uuid_with_prefix
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
@@ -58,7 +58,7 @@ class BusinessMessages(Resource):
             logging.error(msg)
             return msg, 400
 
-        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'mid': uuid.uuid4().hex, 'seen': False}
+        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
 
         try:
             self.doc_db.save(doc, 'business_messages')

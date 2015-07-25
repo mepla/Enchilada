@@ -2,7 +2,7 @@ __author__ = 'Mepla'
 
 import time
 import logging
-from uuid import uuid4
+from www.resources.helpers import uuid_with_prefix
 from functools import wraps
 import re
 
@@ -46,8 +46,8 @@ class OAuth2Provider(object):
             raise ClientDoesNotExist()
 
     def generate_access_token(self, uid, client_id, scope, ttl=max_ttl):
-        access_token = uuid4().hex
-        refresh_token = uuid4().hex
+        access_token = uuid_with_prefix('at')
+        refresh_token = uuid_with_prefix('rt')
 
         try:
             existing_client = self.auth_db.find_doc('client_id', client_id, 'clients')

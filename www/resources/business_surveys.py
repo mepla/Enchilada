@@ -14,6 +14,7 @@ from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmpty
     DatabaseFindError
 import time
 from www.resources.helpers import filter_general_document_db_record
+from www.resources.helpers import uuid_with_prefix
 
 
 class BusinessSurveyResults(Resource):
@@ -39,7 +40,7 @@ class BusinessSurveyResults(Resource):
         data['uid'] = uid
         data['bid'] = bid
         data['timestamp'] = time.time()
-        data['srid'] = uuid.uuid4().hex
+        data['srid'] = uuid_with_prefix('srid')
 
         try:
             self.doc_db.save(data, 'business_survey_results')

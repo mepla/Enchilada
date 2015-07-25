@@ -1,3 +1,5 @@
+import uuid
+
 __author__ = 'Mepla'
 
 
@@ -56,3 +58,9 @@ class Patch(object):
                 pass
             elif op == 'remove':
                 pass
+
+
+def uuid_with_prefix(prefix):
+    if not prefix:
+        prefix = ''
+    return str(prefix) + uuid.uuid4().hex
