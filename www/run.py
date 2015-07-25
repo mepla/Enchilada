@@ -5,7 +5,7 @@ import logging
 from resources.sign_up import SignUp
 from resources.login import Login
 from resources.users import User, Users
-from www.resources.businesses import BusinessProfile, BusinessCategory
+from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses
 from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
@@ -37,6 +37,7 @@ def initialize_app():
     api.add_resource(BusinessMessage, '/businesses/<string:bid>/messages/<string:mid>')
     api.add_resource(BusinessReviews, '/businesses/<string:bid>/reviews')
     api.add_resource(BusinessReview, '/businesses/<string:bid>/reviews/<string:rid>')
+    api.add_resource(Businesses, '/businesses')
 
 if __name__ == '__main__':
     initialize_app()

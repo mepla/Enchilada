@@ -128,7 +128,6 @@ class User(Resource):
             return msg, 500
 
 
-
 def filter_user_info(user_info):
     user_info_copy = dict(user_info)
     user_info_copy = filter_general_document_db_record(user_info_copy)

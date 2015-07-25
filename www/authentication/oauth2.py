@@ -101,7 +101,7 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 401
 
-            logging.debug('Authorizing resource owner with access token: {}'.format(token_type + token))
+            logging.debug('Authorizing resource owner with access token: {}'.format(token_type + ' ' + token))
 
             token_doc = self.auth_db.find_doc('access_token', token, 'tokens')
             if token_doc:

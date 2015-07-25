@@ -66,14 +66,13 @@ business_signup_schema = '''
         "name": { "type": "string" },
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "category": { "type": "number" },
+        "category": { "type": "string" },
         "email": { "type": "string" },
-        "password": { "type": "string" },
         "latitude": { "type": "number" },
         "longitude": { "type": "number" }
     },
     "additionalProperties": false,
-    "required": [ "creation_date","name","title","description","category","email","password","latitude","longitude"]
+    "required": ["name", "title", "description", "category", "email"]
 }
 '''
 

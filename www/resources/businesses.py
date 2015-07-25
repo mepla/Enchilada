@@ -12,7 +12,38 @@ from www.resources.helpers import filter_general_document_db_record
 
 import logging
 from www import oauth2
-import uuid
+from www.resources.helpers import uuid_with_prefix
+
+
+class Businesses(Resource):
+    def __init__(self):
+        super(Businesses, self).__init__()
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
+
+    # @oauth2.check_access_token
+    def post(self, uid=None):
+        logging.debug('Client requested to create a business.')
+
+        try:
+            body = request.get_json(force=True)
+        except Exception as exc:
+            msg = {'msg': 'Your JSON is invalid.'}
+            logging.error(msg)
+            return msg, 400
+
+        try:
+            validate_json(body, business_signup_schema)
+        except JsonValidationException as exc:
+            msg = {'message': exc.message}
+            logging.error(msg)
+            return msg, 400
+
+        try:
+            return self.graph_db.create_new_business(**body)
+        except Exception as exc:
+            msg = {'message': 'Internal server error'}
+            logging.error(exc, msg)
+            return msg
 
 
 class BusinessProfile(Resource):
@@ -22,8 +53,12 @@ class BusinessProfile(Resource):
 
     @oauth2.check_access_token
     def get(self, uid, bid):
-        logging.info('Client requested for business profile.')
-        return self.graph_db.find_business(bid)
+        logging.debug('Client requested for business profile.')
+        return self.graph_db.find_single_business('bid', bid)
+
+    @oauth2.check_access_token
+    def put(self, uid, bid):
+        pass
 
 
 class BusinessCategory(Resource):
@@ -46,19 +81,25 @@ class BusinessCategory(Resource):
 
     def post(self):
         logging.debug('Client requested to create a business category.')
-        data = request.get_json(force=True)
+
+        try:
+            data = request.get_json(force=True)
+        except Exception as exc:
+            msg = {'msg': 'Your JSON is invalid.'}
+            logging.error(msg)
+            return msg, 400
 
         try:
             if isinstance(data, dict):
                 validate_json(data, business_category_add_single_schema)
-                data['bcid'] = uuid.uuid4().hex
+                data['bcid'] = uuid_with_prefix('bcid')
                 self.doc_db.save(data, 'business_categories')
                 return filter_general_document_db_record(data), 200
 
             elif isinstance(data, list):
                 for doc in data:
                     validate_json(doc, business_category_add_single_schema)
-                    doc['bcid'] = uuid.uuid4().hex
+                    doc['bcid'] = uuid_with_prefix('bcid')
 
                 self.doc_db.save(data, 'business_categories', True)
                 return filter_general_document_db_record(data), 200
