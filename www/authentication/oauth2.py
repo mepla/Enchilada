@@ -2,12 +2,12 @@ __author__ = 'Mepla'
 
 import time
 import logging
-from www.resources.helpers import uuid_with_prefix
 from functools import wraps
 import re
 
 from flask import request
 
+from www.utilities.helpers import uuid_with_prefix
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError
 

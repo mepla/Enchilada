@@ -1,3 +1,5 @@
+from www.databases.database_drivers import MongoDatabase
+
 __author__ = 'Mepla'
 
 import logging
@@ -5,7 +7,7 @@ import logging
 from resources.sign_up import SignUp
 from resources.login import Login
 from resources.users import User, Users
-from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses
+from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses, BusinessAdmins, BusinessAdmin
 from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
@@ -38,6 +40,8 @@ def initialize_app():
     api.add_resource(BusinessReviews, '/businesses/<string:bid>/reviews')
     api.add_resource(BusinessReview, '/businesses/<string:bid>/reviews/<string:rid>')
     api.add_resource(Businesses, '/businesses')
+    api.add_resource(BusinessAdmins, '/businesses/<string:bid>/admins')
+    api.add_resource(BusinessAdmin, '/businesses/<string:bid>/admins/<string:admin_uid>')
 
 if __name__ == '__main__':
     initialize_app()

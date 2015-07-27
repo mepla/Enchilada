@@ -3,9 +3,11 @@ __author__ = 'Mepla'
 
 import logging
 import pprint
-from www.resources.helpers import uuid_with_prefix
+
 from flask import request
 from flask_restful import Resource
+
+from www.utilities.helpers import uuid_with_prefix
 from www import utils
 from www.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
@@ -31,6 +33,9 @@ class SignUp(Resource):
             logging.error(msg)
             return msg, 400
 
+        return self.sign_up_user(body)
+
+    def sign_up_user(self, body, additional_resposibilities=None):
         try:
             validate_json(body, signup_schema)
             logging.debug('Client requested for sign up with payload: \n{}'.format(pprint.pformat(body)))
@@ -68,6 +73,8 @@ class SignUp(Resource):
         body['type'] = 'personal'
         body['uid'] = uuid_with_prefix('uid')
         body['responsible_for'] = body['uid']
+        if additional_resposibilities and len(additional_resposibilities) > 0:
+            body['responsible_for'] += ' ' + ' '.join(additional_resposibilities)
         hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
         body['password'] = hashed_password
 

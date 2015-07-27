@@ -76,6 +76,20 @@ business_signup_schema = '''
 }
 '''
 
+business_update_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+    },
+    "additionalProperties": false
+}
+'''
+
 business_app_schema = '''
 {
     "type": "object",
@@ -154,6 +168,17 @@ review_schema = '''
     },
     "additionalProperties": false,
     "required": [ "body"]
+}
+'''
+
+add_admin_for_business_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "uid":  { "type": "string" }
+    },
+    "additionalProperties": false,
+    "required": [ "uid"]
 }
 '''
 

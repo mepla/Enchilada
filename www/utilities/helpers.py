@@ -19,7 +19,7 @@ class PatchTypeViolation(PatchError):
     pass
 
 
-def filter_single_general_document_db_record(doc):
+def _filter_single_general_document_db_record(doc):
 
     if 'id' in doc:
         del(doc['id'])
@@ -32,11 +32,31 @@ def filter_single_general_document_db_record(doc):
 
 def filter_general_document_db_record(doc):
     if isinstance(doc, dict):
-        return filter_single_general_document_db_record(doc)
+        return _filter_single_general_document_db_record(doc)
     if isinstance(doc, list):
         return_list = []
         for single_doc in doc:
-            return_list.append(filter_single_general_document_db_record(single_doc))
+            return_list.append(_filter_single_general_document_db_record(single_doc))
+        return return_list
+
+
+def _filter_single_user_info(doc):
+    user_info_copy = dict(doc)
+    user_info_copy = filter_general_document_db_record(user_info_copy)
+    if 'password' in user_info_copy:
+        del(user_info_copy['password'])
+    if 'udid' in user_info_copy:
+        del(user_info_copy['udid'])
+    return user_info_copy
+
+
+def filter_user_info(user_info):
+    if isinstance(user_info, dict):
+        return _filter_single_user_info(user_info)
+    if isinstance(user_info, list):
+        return_list = []
+        for single_doc in user_info:
+            return_list.append(_filter_single_user_info(single_doc))
         return return_list
 
 

@@ -1,12 +1,14 @@
 __author__ = 'Mepla'
 
 import logging
-from www.resources.helpers import uuid_with_prefix
-from py2neo import Graph, Node, Relationship, authenticate, rel
-from pymongo import MongoClient
-from www.resources.helpers import filter_general_document_db_record
 import time
 from operator import itemgetter
+
+from py2neo import Graph, Node, Relationship, authenticate
+from pymongo import MongoClient
+
+from www.utilities.helpers import uuid_with_prefix
+from www.utilities.helpers import filter_general_document_db_record
 
 
 class DatabaseFindError(Exception):
@@ -114,7 +116,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         self.docs_in_memory = {}
 
     def update(self, doc):
-        existing_doc = self.docs_in_memory[doc.get('uid')] or self.docs_in_memory[doc.get('bid')] or self.docs_in_memory[doc.get('rid')] or self.docs_in_memory[doc.get('id')]
+        existing_doc = self.docs_in_memory.get(doc.get('uid')) or self.docs_in_memory.get(doc.get('bid')) or self.docs_in_memory.get(doc.get('rid')) or self.docs_in_memory.get(doc.get('id'))
         if existing_doc:
             try:
                 for key in doc.keys():
@@ -182,6 +184,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             raise DatabaseFindError()
 
         if existing_business:
+            self.docs_in_memory[existing_business.properties.get('bid')] = existing_business
             return existing_business.properties
         else:
             raise DatabaseRecordNotFound
@@ -236,3 +239,16 @@ class Neo4jDatabase(GraphDatabaseBase):
             new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, timestamps=timestamps)
             self._graph.create(new_relation)
             return new_relation.properties
+
+    def find_business_admins(self, bid):
+        try:
+            result = self._graph.cypher.execute('match (n:user) where n.responsible_for =~ \'^.*{}.*$\' return n'.format(bid))
+        except Exception as exc:
+            logging.error(exc)
+            raise DatabaseFindError
+
+        if len(result.records) < 1:
+            raise DatabaseEmptyResult
+
+        else:
+            return [admin.n.properties for admin in result.records]

@@ -1,19 +1,22 @@
 __author__ = 'Mepla'
 
-from flask import request
-from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, signup_schema, \
-    user_put_schema
 import logging
+
+from flask import request
 from flask_restful import Resource
+
+from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema
 from www.databases.factories import DatabaseFactory
 from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
 from www import oauth2
-from helpers import Patch, filter_general_document_db_record
+from www.utilities.helpers import Patch, filter_user_info
+
 
 # /users
 class Users(Resource):
     def __init__(self):
         pass
+
 
 # /users/{user_id}
 class User(Resource):
@@ -127,13 +130,3 @@ class User(Resource):
             msg = {'message': 'Internal server error'}
             return msg, 500
 
-
-def filter_user_info(user_info):
-    user_info_copy = dict(user_info)
-    user_info_copy = filter_general_document_db_record(user_info_copy)
-    if 'password' in user_info_copy:
-        del(user_info_copy['password'])
-    if 'udid' in user_info_copy:
-        del(user_info_copy['udid'])
-
-    return user_info_copy

@@ -1,20 +1,18 @@
-import uuid
-from pymongo.database import Database
-
 __author__ = 'Mepla'
 
-from flask_restful import Resource
-from www.databases.factories import DatabaseFactory
-from www.resources.json_schemas import validate_json, JsonValidationException, business_app_schema, business_signup_schema, \
-    survey_result_schema
-from flask import request
 import logging
+import time
+
+from flask_restful import Resource
+from flask import request
+
+from www.databases.factories import DatabaseFactory
+from www.resources.json_schemas import validate_json, JsonValidationException, survey_result_schema
 from www import oauth2
 from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
     DatabaseFindError
-import time
-from www.resources.helpers import filter_general_document_db_record
-from www.resources.helpers import uuid_with_prefix
+from www.utilities.helpers import filter_general_document_db_record
+from www.utilities.helpers import uuid_with_prefix
 
 
 class BusinessSurveyResults(Resource):
