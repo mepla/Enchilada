@@ -1,3 +1,5 @@
+import pymongo
+
 __author__ = 'Mepla'
 
 import logging
@@ -74,7 +76,7 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
 
-    def find_doc(self, key, value, doc_type, limit=1, conditions=None):
+    def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1):
         try:
             find_predicate = {}
             if conditions:
@@ -89,7 +91,11 @@ class MongoDatabase(DocumentDatabaseBase):
                     raise DatabaseRecordNotFound()
                 return doc
             else:
-                cursor = self._mongo_db[doc_type].find(find_predicate)
+                if sort_key:
+                    directon = pymongo.DESCENDING if sort_direction == -1 else pymongo.ASCENDING
+                    cursor = self._mongo_db[doc_type].find(find_predicate, limit=limit).sort(sort_key, directon)
+                else:
+                    cursor = self._mongo_db[doc_type].find(find_predicate, limit=limit)
                 return_list = []
                 for doc in cursor:
                     return_list.append(filter_general_document_db_record(doc))
@@ -104,7 +110,7 @@ class MongoDatabase(DocumentDatabaseBase):
             raise exc
 
         except Exception as exc:
-            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, type(exc)))
+            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseFindError()
 
 

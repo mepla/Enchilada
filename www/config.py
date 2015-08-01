@@ -13,11 +13,13 @@ default_configs = {
             "username": "neo4j",
             "password": "Echomybiz",
             "host": "52.10.54.183",
-            "port": 7474
+            "port": 7474,
+            "max_page_limit": 30
         },
         "mongodb": {
             "host": "52.10.54.183",
-            "port": 27017
+            "port": 27017,
+            "max_page_limit": 30
         }
     }
 }

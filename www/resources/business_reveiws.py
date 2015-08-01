@@ -1,3 +1,6 @@
+from flask_restful.reqparse import RequestParser
+from www.config import configs
+
 __author__ = 'Mepla'
 
 import time
@@ -21,8 +24,39 @@ class BusinessReviews(Resource):
 
     @oauth2.check_access_token
     def get(self, uid, bid):
+        parser = RequestParser()
+        parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
+        parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
+        parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+
+        args = parser.parse_args()
+
+        before = args.get('before')
+        after = args.get('after')
+
+        if before and after and before < after:
+            msg = {'message': '`before` argument must be greater than or equal to `after`.'}
+            logging.debug(msg)
+            return msg, 400
+
+        conditions = {}
+
+        if before:
+            conditions['timestamp'] = {'$lt': before}
+
+        if after:
+            if conditions.get('timestamp'):
+                conditions['timestamp']['$gt'] = after
+            else:
+                conditions['timestamp'] = {'$gt': after}
+
+        limit = args.get('limit')
+        max_limit = configs.get('DATABASES').get('mongodb').get('max_page_limit')
+        if not limit or limit > max_limit:
+            limit = max_limit
+
         try:
-            reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=10)
+            reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
