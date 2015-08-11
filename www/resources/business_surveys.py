@@ -94,9 +94,13 @@ class BusinessSurveyResults(Resource):
             msg = {'message': 'There are no survey templates for this business.'}
             logging.error(msg)
             return msg, 204
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'There are no survey templates for this business.'}
+            logging.error(msg)
+            return msg, 204
 
         return filter_general_document_db_record(surveys)
-    
+
 
 class BusinessSurveyResult(Resource):
     def __init__(self):
@@ -108,6 +112,20 @@ class BusinessSurveyResult(Resource):
             return filter_general_document_db_record(doc)
         except DatabaseFindError as exc:
             msg = {'message': 'Survey does not exist.'}
+            logging.error(msg)
+            return msg, 404
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'Survey does not exist.'}
+            logging.error(msg)
+            return msg, 204
+
+    def delete(self, bid, survey_id, uid=None):
+        result = self.doc_db.delete('business_survey_results', {'srid': survey_id})
+
+        if result > 0:
+            return None, 204
+        else:
+            msg = {'message': 'There is no survey result with survey_id ({}).'.format(survey_id)}
             logging.error(msg)
             return msg, 404
 
@@ -124,6 +142,10 @@ class BusinessSurveyTemplates(Resource):
             logging.error('Error reading database for business_survey_templates.')
             return msg, 500
         except DatabaseEmptyResult as exc:
+            msg = {'message': 'There are no survey templates for this business.'}
+            logging.error(msg)
+            return msg, 204
+        except DatabaseRecordNotFound as exc:
             msg = {'message': 'There are no survey templates for this business.'}
             logging.error(msg)
             return msg, 204
@@ -161,8 +183,15 @@ class BusinessSurveyTemplate(Resource):
     def put(self):
         pass
 
-    def delete(self):
-        pass
+    def delete(self, bid, survey_id, uid=None):
+        result = self.doc_db.delete('business_survey_templates', {'stid': survey_id})
+
+        if result > 0:
+            return None, 204
+        else:
+            msg = {'message': 'There is no Survey template with survey_id ({}).'.format(survey_id)}
+            logging.error(msg)
+            return msg, 404
 
 
 def filter_business_survey_template(template):

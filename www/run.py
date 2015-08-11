@@ -13,6 +13,7 @@ from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
 from www.resources.business_messages import BusinessMessage, BusinessMessages
 from www.resources.business_reveiws import BusinessReview, BusinessReviews
+from www.resources.business_promotions import BusinessPromotion, BusinessPromotions
 from www import api, app
 
 
@@ -42,6 +43,8 @@ def initialize_app():
     api.add_resource(Businesses, '/businesses')
     api.add_resource(BusinessAdmins, '/businesses/<string:bid>/admins')
     api.add_resource(BusinessAdmin, '/businesses/<string:bid>/admins/<string:admin_uid>')
+    api.add_resource(BusinessPromotions, '/businesses/<string:bid>/promotions')
+    api.add_resource(BusinessPromotion, '/businesses/<string:bid>/promotions/<string:pid>')
 
 if __name__ == '__main__':
     initialize_app()

@@ -183,6 +183,57 @@ add_admin_for_business_schema = '''
 '''
 
 
+create_promotion_schema = '''
+{
+    "type": "object",
+    "properties":{
+        "title":  { "type": "string" },
+        "description":  { "type": "string" },
+        "life_span": {
+            "type": "object",
+            "properties": {
+                "start_date":  { "type": "string" },
+                "end_date":  { "type": "string" },
+                "start_hour":  { "type": "string" },
+                "end_hour":  { "type": "string" },
+                "days_of_week": {"type": "array"}
+            }
+        },
+        "conditions": {
+            "type": "object",
+            "properties": {
+                "gender":  { "type": "string" },
+                "must_follow":  { "type": "boolean" },
+                "age": {
+                    "type": "object",
+                    "properties": {
+                        "from": { "type": "integer" },
+                        "to": { "type": "integer" }
+                    }
+                },
+                "checkins": {
+                    "type": "object",
+                    "properties": {
+                        "min": { "type": "integer" },
+                        "max": { "type": "integer" },
+                        "days_since_last": { "type": "integer" }
+                    }
+                },
+                "special_conditions": {
+                    "type": "object",
+                    "properties": {
+                        "must_be_birthday": { "type": "boolean" }
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": [ "title", "description", "conditions", "life_span"]
+}
+'''
+
+
 def validate_json(json_data, schema):
     try:
         if isinstance(schema, str):

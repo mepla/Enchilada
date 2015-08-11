@@ -76,6 +76,14 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
 
+    def delete(self, doc_type, conditions, multiple=False):
+        if multiple:
+            result = self._mongo_db[doc_type].delete_many(conditions)
+        else:
+            result = self._mongo_db[doc_type].delete_one(conditions)
+
+        return result.deleted_count
+
     def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1):
         try:
             find_predicate = {}
