@@ -10,7 +10,7 @@ from py2neo import Graph, Node, Relationship, authenticate
 from pymongo import MongoClient
 
 from www.utilities.helpers import uuid_with_prefix
-from www.utilities.helpers import filter_general_document_db_record
+from www.utilities.helpers import filter_general_document_db_record, filter_user_info
 
 
 class DatabaseFindError(Exception):
@@ -159,12 +159,19 @@ class Neo4jDatabase(GraphDatabaseBase):
         else:
             raise DatabaseRecordNotFound
 
-    def find_single_user_checkins(self, user_id):
+    def find_single_user_checkins(self, user_id, bid=None):
         existing_user = self._graph.find_one('user', 'uid', user_id)
         if not existing_user:
             raise DatabaseRecordNotFound()
+
+        existing_business = None
+        if bid:
+            existing_business = self._graph.find_one('business', 'bid', bid)
+            if not existing_business:
+                raise DatabaseRecordNotFound()
+
         try:
-            checkin_relations = list(self._graph.match(start_node=existing_user, rel_type="CHECK_IN"))
+            checkin_relations = list(self._graph.match(start_node=existing_user, end_node=existing_business, rel_type="CHECK_IN"))
         except Exception as exc:
             raise DatabaseRecordNotFound()
         if checkin_relations:
@@ -230,6 +237,72 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
+
+    def follow(self, business_or_user_id, uid):
+        try:
+            if business_or_user_id.find('uid') == 0:
+                end_node = self._graph.find_one('user', 'uid', business_or_user_id)
+            else:
+                end_node = self._graph.find_one('business', 'bid', business_or_user_id)
+            if not end_node:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        user = self._graph.find_one('user', 'uid', uid)
+
+        existing_relation = self._graph.match_one(user, "FOLLOWS", end_node)
+        if existing_relation:
+            return existing_relation.properties
+        else:
+            new_id = uuid_with_prefix('fid')
+            timestamp = str(time.time())
+            new_relation = Relationship(user, 'FOLLOWS', end_node, fid=new_id, timestamp=timestamp)
+            self._graph.create(new_relation)
+            return new_relation.properties
+
+    def find_business_followers(self, bid):
+        try:
+            business = self._graph.find_one('business', 'bid', bid)
+            if not business:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        try:
+            results = self._graph.match(None, "FOLLOWS", business)
+            if not results:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult
+
+        response_list = list()
+        for res in results:
+            user = res.start_node
+            timestamp = res.properties['timestamp']
+            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
+
+        response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
+        return response_list
+
+    def is_follower(self, uid, business_or_user_id):
+        try:
+            if business_or_user_id.find('uid') == 0:
+                end_node = self._graph.find_one('user', 'uid', business_or_user_id)
+            else:
+                end_node = self._graph.find_one('business', 'bid', business_or_user_id)
+            if not end_node:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        user = self._graph.find_one('user', 'uid', uid)
+
+        existing_relation = self._graph.match_one(user, "FOLLOWS", end_node)
+        if existing_relation:
+            return True
+        else:
+            return False
 
     def checkin_user(self, business_id, user_id):
         try:

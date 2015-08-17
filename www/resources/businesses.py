@@ -1,7 +1,7 @@
 from www.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
     DocumentNotUpdated, DatabaseEmptyResult
 
-__author__ = 'Naja'
+__author__ = 'Mepla'
 
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory

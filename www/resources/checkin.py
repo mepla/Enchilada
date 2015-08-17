@@ -1,4 +1,4 @@
-__author__ = 'Naja'
+__author__ = 'Mepla'
 
 from flask_restful import Resource
 from www.databases.factories import DatabaseFactory
