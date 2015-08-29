@@ -22,6 +22,7 @@ from www import oauth2
 class BusinessMessages(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
     def get(self, uid, bid):
@@ -91,6 +92,18 @@ class BusinessMessages(Resource):
             msg = {'message': exc.message}
             logging.error(msg)
             return msg, 400
+
+        try:
+            existing_business = self.graph_db.find_single_business('bid', bid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to post message to does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
 
         doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
 

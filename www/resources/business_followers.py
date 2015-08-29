@@ -20,6 +20,18 @@ class BusinessFollowers(Resource):
     # @oauth2.check_access_token
     def get(self, bid, uid=None):
         try:
+            existing_business = self.graph_db.find_single_business('bid', bid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to get followers of does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
+
+        try:
             response = self.graph_db.find_business_followers(bid)
         except DatabaseEmptyResult:
             msg = {'message': 'There is no check_ins for this business.'}

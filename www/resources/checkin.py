@@ -6,7 +6,7 @@ from www.resources.json_schemas import validate_json, JsonValidationException, b
 from flask import request
 import logging
 from www import oauth2
-from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult
+from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseFindError
 
 
 class CheckIn(Resource):
@@ -17,12 +17,18 @@ class CheckIn(Resource):
     @oauth2.check_access_token
     def post(self, bid, uid):
         logging.info('Client requested for checkin.')
-        # try:
-        #     data = request.get_json(force=True)
-        # except Exception as exc:
-        #     msg = {'message': exc.message}
-        #     logging.error(msg)
-        #     return msg, 400
+
+        try:
+            existing_business = self.graph_db.find_single_business('bid', bid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to create promotion for does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
 
         try:
             relation = self.graph_db.checkin_user(bid, uid)

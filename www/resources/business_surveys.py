@@ -21,6 +21,7 @@ from www.utilities.helpers import uuid_with_prefix
 class BusinessSurveyResults(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
     def post(self, uid, bid):
@@ -37,6 +38,18 @@ class BusinessSurveyResults(Resource):
             msg = {'message': exc.message}
             logging.error(msg)
             return msg, 400
+
+        try:
+            existing_business = self.graph_db.find_single_business('bid', bid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to create promotion for does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
 
         data['uid'] = uid
         data['bid'] = bid

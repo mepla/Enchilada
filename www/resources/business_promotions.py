@@ -22,6 +22,7 @@ from www.utilities.helpers import uuid_with_prefix
 class BusinessPromotions(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     def get(self, bid, uid=None):
         try:
@@ -56,6 +57,18 @@ class BusinessPromotions(Resource):
             msg = {'message': exc.message}
             logging.error(msg)
             return msg, 400
+
+        try:
+            existing_business = self.graph_db.find_single_business('bid', bid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to create promotion for does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
 
         data['bid'] = bid
         data['pid'] = uuid_with_prefix('pid')
@@ -127,28 +140,32 @@ class EligiblePromotions(Resource):
             try:
                 self.check_eligibility(promotion, uid)
                 eligible_promotions.append(promotion)
+            except DatabaseFindError as exc:
+                msg = {'message': 'Internal server error.'}
+                logging.info(msg)
+                logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
+                return msg, 500
+            except DatabaseRecordNotFound:
+                msg = {'message': 'User does not exist or does not have any checkins.'}
+                logging.debug(msg)
+                return msg, 404
             except Exception as exc:
                 pass
 
         if len(eligible_promotions) < 1:
             return None, 204
         else:
-            return filter_general_document_db_record(promotions)
+            return filter_general_document_db_record(eligible_promotions)
 
 
     def check_eligibility(self, promotion, uid):
         graph_db = DatabaseFactory().get_database_driver('graph')
-        try:
-            user = graph_db.find_single_user('uid', uid)
-        except DatabaseFindError as exc:
-            msg = {'message': 'Internal server error'}
-            logging.error(msg)
-            return msg, 500
+        user = graph_db.find_single_user('uid', uid)
 
         if not user:
             msg = {'message': 'No user with uid: {}'.format(uid)}
             logging.critical(msg)
-            return msg, 500
+            raise DatabaseRecordNotFound(msg)
 
         try:
             conditions = promotion.get('conditions')
@@ -180,17 +197,7 @@ class EligiblePromotions(Resource):
             # Checkins check
             checkins_condition = conditions.get('checkins')
             if checkins_condition:
-                try:
-                    checkin = graph_db.find_single_user_checkins(uid, promotion.get('bid'))
-                except DatabaseFindError as exc:
-                    msg = {'message': 'Internal server error.'}
-                    logging.info(msg)
-                    logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
-                    return msg, 500
-                except DatabaseRecordNotFound:
-                    msg = {'message': 'User does not exist or does not have any checkins.'}
-                    logging.debug(msg)
-                    return msg, 404
+                checkin = graph_db.find_single_user_checkins(uid, promotion.get('bid'))
 
                 min_checkins_condition = checkins_condition.get('min')
                 if min_checkins_condition:
@@ -227,4 +234,4 @@ class EligiblePromotions(Resource):
 def get_age(birth_date):
         days_of_age = (datetime.datetime.today() - datetime.datetime.strptime(birth_date, '%Y-%m-%d')).days
         user_age = float(float(days_of_age)/float(365))
-        return user_age
+        return int(user_age)
