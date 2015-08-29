@@ -13,7 +13,7 @@ from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
 from www.resources.business_messages import BusinessMessage, BusinessMessages
 from www.resources.business_reveiws import BusinessReview, BusinessReviews
-from www.resources.business_promotions import BusinessPromotion, BusinessPromotions, EligiblePromotions
+from www.resources.business_promotions import BusinessPromotion, BusinessPromotions, EligiblePromotions, PromotionApply
 from www.resources.business_followers import BusinessFollowers
 from www import api, app
 
@@ -47,6 +47,7 @@ def initialize_app():
     api.add_resource(BusinessPromotions, '/businesses/<string:bid>/promotions')
     api.add_resource(BusinessPromotion, '/businesses/<string:bid>/promotions/<string:pid>')
     api.add_resource(EligiblePromotions, '/businesses/<string:bid>/promotions/eligible_for_me')
+    api.add_resource(PromotionApply, '/businesses/<string:bid>/promotions/<string:pid>/apply')
 
     api.add_resource(BusinessFollowers, '/businesses/<string:bid>/followers')
 

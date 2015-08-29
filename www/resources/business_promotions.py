@@ -144,11 +144,11 @@ class EligiblePromotions(Resource):
                 msg = {'message': 'Internal server error.'}
                 logging.info(msg)
                 logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
-                return msg, 500
+                continue
             except DatabaseRecordNotFound:
                 msg = {'message': 'User does not exist or does not have any checkins.'}
                 logging.debug(msg)
-                return msg, 404
+                continue
             except Exception as exc:
                 pass
 
@@ -156,7 +156,6 @@ class EligiblePromotions(Resource):
             return None, 204
         else:
             return filter_general_document_db_record(eligible_promotions)
-
 
     def check_eligibility(self, promotion, uid):
         graph_db = DatabaseFactory().get_database_driver('graph')
@@ -230,6 +229,42 @@ class EligiblePromotions(Resource):
             logging.error(msg)
             raise exc
 
+
+class PromotionApply(Resource):
+    def __init__(self):
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+
+    def post(self, bid, pid, uid=None):
+        result = BusinessPromotion().get(bid, pid, uid)
+        if not isinstance(result, dict):
+            return result
+
+        try:
+            EligiblePromotions().check_eligibility(result, uid)
+        except DatabaseFindError as exc:
+            msg = {'message': 'Internal server error.'}
+            logging.info(msg)
+            logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
+            return msg, 500
+        except DatabaseRecordNotFound:
+            msg = {'message': 'You are not eligible for this promotion.'}
+            logging.debug(msg)
+            return msg, 400
+        except Exception as exc:
+            msg = {'message': 'You are not eligible for this promotion.'}
+            logging.debug(msg)
+            return msg, 400
+        
+        rcid = uuid_with_prefix('rcid')
+        redeem_code_doc = {'rcid': rcid, 'pid': pid, 'bid': bid, 'uid': uid}
+
+        try:
+            self.doc_db.save(result, 'redeem_codes')
+            return filter_general_document_db_record(redeem_code_doc), 201
+        except DatabaseSaveError as exc:
+            msg = {'message': 'Your redeem code could not be generated. This is an internal error.'}
+            logging.error(msg)
+            return msg, 500
 
 def get_age(birth_date):
         days_of_age = (datetime.datetime.today() - datetime.datetime.strptime(birth_date, '%Y-%m-%d')).days
