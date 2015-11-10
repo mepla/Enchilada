@@ -8,10 +8,9 @@ from jsonschema import validate
 class JsonValidationException(Exception):
     pass
 
-signup_schema = '''
-{
+signup_schema = {
     "type": "object",
-    "properties":{
+    "properties": {
         "name":  { "type": "string" },
         "lastname": { "type": "string" },
         "email": { "type": "string" },
@@ -23,13 +22,13 @@ signup_schema = '''
         "latitude": { "type": "number" },
         "longitude": { "type": "number" }
     },
-    "additionalProperties": false,
-    "required": [ "f_name", "l_name", "email", "password", "udid" ]
+    # TODO: TEMPORARY
+    "additionalProperties": True,
+    "required": [ "name", "lastname", "email", "password", "udid" ]
 }
-'''
 
-user_put_schema = '''
-{
+
+user_put_schema = {
     "type": "object",
     "properties":{
         "f_name":  { "type": "string" },
@@ -42,21 +41,19 @@ user_put_schema = '''
         "latitude": { "type": "number" },
         "longitude": { "type": "number" }
     },
-    "additionalProperties": false
+    "additionalProperties": False
 }
-'''
 
-login_schema = '''
-{
+login_schema = {
     "type": "object",
     "properties":{
         "username":  { "type": "string" },
         "password": { "type": "string" }
     },
-    "additionalProperties": false,
+    "additionalProperties": False,
     "required": [ "username", "password"]
 }
-'''
+
 
 business_signup_schema = '''
 {
