@@ -1,5 +1,3 @@
-from www.databases.database_drivers import MongoDatabase
-
 __author__ = 'Mepla'
 
 import logging

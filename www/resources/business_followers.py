@@ -1,15 +1,12 @@
 __author__ = 'Mepla'
 
-import time
 import logging
 
 from flask_restful import Resource
-from flask_restful.reqparse import RequestParser
-from flask import request
 
-from www.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
+from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-from www.databases.factories import DatabaseFactory
+from www.resources.databases.factories import DatabaseFactory
 from www import oauth2
 
 

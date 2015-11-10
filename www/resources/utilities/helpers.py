@@ -1,4 +1,8 @@
 import uuid
+import re
+import datetime
+import pytz
+
 
 __author__ = 'Mepla'
 
@@ -60,6 +64,24 @@ def filter_user_info(user_info):
         return return_list
 
 
+def uuid_with_prefix(prefix):
+    if not prefix:
+        prefix = ''
+    return str(prefix) + uuid.uuid4().hex
+
+
+def check_email_format(email):
+    return re.match(r'[^@]+@[^@]+\.[^@]+', email)
+
+
+def date_now_formatted():
+    return date_formatted(datetime.datetime.utcnow())
+
+
+def date_formatted(date):
+    return date.strftime('%Y-%m-%d %H:%M:%S')
+
+
 class Patch(object):
     @staticmethod
     def patch_doc(patch_array, doc, read_only_paths):
@@ -78,9 +100,3 @@ class Patch(object):
                 pass
             elif op == 'remove':
                 pass
-
-
-def uuid_with_prefix(prefix):
-    if not prefix:
-        prefix = ''
-    return str(prefix) + uuid.uuid4().hex

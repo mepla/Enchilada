@@ -1,9 +1,11 @@
 __author__ = 'Naja'
-from flask_restful import Resource
-from www import oauth2
-from www.databases.factories import DatabaseFactory
-from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 import logging
+
+from flask_restful import Resource
+
+from www import oauth2
+from www.resources.databases.factories import DatabaseFactory
+from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 
 
 class UsersCheckin(Resource):

@@ -6,10 +6,10 @@ from flask import request
 from flask_restful import Resource
 
 from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema
-from www.databases.factories import DatabaseFactory
-from www.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
+from www.resources.databases.factories import DatabaseFactory
+from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
 from www import oauth2
-from www.utilities.helpers import Patch, filter_user_info
+from www.resources.utilities.helpers import Patch, filter_user_info
 
 
 # /users

@@ -9,8 +9,8 @@ from operator import itemgetter
 from py2neo import Graph, Node, Relationship, authenticate
 from pymongo import MongoClient
 
-from www.utilities.helpers import uuid_with_prefix
-from www.utilities.helpers import filter_general_document_db_record, filter_user_info
+from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info
 
 
 class DatabaseFindError(Exception):
@@ -47,19 +47,23 @@ class DocumentDatabaseBase(object):
 
 class MongoDatabase(DocumentDatabaseBase):
     def __init__(self, host='localhost', port=27017, db='docs'):
-        from www.config import configs
+        from www.resources.config import configs
         if configs['debug_mode']:
             docs = 'test_docs'
             auth = 'test_auth'
+            accounting = 'test_accounting'
         else:
             docs = 'docs'
             auth = 'auth'
+            accounting = 'accounting'
 
         self._mongo_client = MongoClient(host, port)
         if db == 'docs':
             self._mongo_db = self._mongo_client.test_docs
         elif db == 'auth':
             self._mongo_db = self._mongo_client.test_auth
+        elif db == 'accounting':
+            self._mongo_db = self._mongo_client.test_accounting
         else:
             raise DatabaseNotFound('The database you requested was not found: {}'.format(db))
 

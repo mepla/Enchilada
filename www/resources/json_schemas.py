@@ -12,8 +12,8 @@ signup_schema = '''
 {
     "type": "object",
     "properties":{
-        "f_name":  { "type": "string" },
-        "l_name": { "type": "string" },
+        "name":  { "type": "string" },
+        "lastname": { "type": "string" },
         "email": { "type": "string" },
         "password": { "type": "string" },
         "gender": { "type": "string" },

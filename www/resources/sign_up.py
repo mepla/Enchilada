@@ -5,14 +5,15 @@ import logging
 import pprint
 
 from flask import request
+
 from flask_restful import Resource
 
-from www.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import uuid_with_prefix
 from www import utils
-from www.authentication import password_management as pm
+from www.resources.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
-from www.databases.factories import DatabaseFactory
-from www.databases.database_drivers import DatabaseRecordNotFound
+from www.resources.databases.factories import DatabaseFactory
+from www.resources.databases.database_drivers import DatabaseRecordNotFound
 from www.resources.users import filter_user_info
 
 number_of_allowed_users_with_udid = 3

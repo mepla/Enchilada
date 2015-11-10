@@ -1,5 +1,4 @@
-from werkzeug.exceptions import BadRequest
-from www.config import configs
+from www.resources.config import configs
 
 __author__ = 'Mepla'
 
@@ -10,12 +9,12 @@ from flask_restful import Resource
 from flask_restful.reqparse import RequestParser
 from flask import request
 
-from www.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
+from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-from www.utilities.helpers import uuid_with_prefix
-from www.databases.factories import DatabaseFactory
+from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
-from www.utilities.helpers import filter_general_document_db_record
+from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2
 
 

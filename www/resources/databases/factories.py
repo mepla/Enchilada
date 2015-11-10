@@ -2,8 +2,8 @@ __author__ = 'Mepla'
 
 import logging
 
-from www.databases.database_drivers import Neo4jDatabase, MongoDatabase, DatabaseNotFound
-from www.config import configs
+from www.resources.databases.database_drivers import Neo4jDatabase, MongoDatabase, DatabaseNotFound
+from www.resources.config import configs
 
 
 class Singleton(type):
@@ -33,6 +33,12 @@ class DatabaseFactory(object):
         if db_type == 'document/auth':
             mongo_db_configs = configs.get('DATABASES').get('mongodb')
             mongo_db_instance = MongoDatabase(mongo_db_configs.get('host'), mongo_db_configs.get('port'), 'auth')
+            logging.debug('Database driver of type `{}` was created and returned: {}'.format(db_type, mongo_db_instance))
+            return mongo_db_instance
+
+        if db_type == 'document/accounting':
+            mongo_db_configs = configs.get('DATABASES').get('mongodb')
+            mongo_db_instance = MongoDatabase(mongo_db_configs.get('host'), mongo_db_configs.get('port'), 'accounting')
             logging.debug('Database driver of type `{}` was created and returned: {}'.format(db_type, mongo_db_instance))
             return mongo_db_instance
 

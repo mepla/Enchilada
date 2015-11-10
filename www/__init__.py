@@ -1,14 +1,11 @@
 __author__ = 'Mepla'
 
-import json
-import logging
-
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_httpauth import HTTPBasicAuth
 
-from www.config import default_configs, config_path
-from www.authentication.oauth2 import OAuth2Provider
+from www.resources.config import default_configs, config_path
+from www.resources.authentication.oauth2 import OAuth2Provider
 
 app = Flask(__name__)
 api = Api(app)

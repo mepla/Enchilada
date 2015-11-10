@@ -7,9 +7,9 @@ import re
 
 from flask import request
 
-from www.utilities.helpers import uuid_with_prefix
-from www.databases.factories import DatabaseFactory
-from www.databases.database_drivers import DatabaseFindError
+from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.databases.factories import DatabaseFactory
+from www.resources.databases.database_drivers import DatabaseFindError
 
 max_ttl = 604800
 

@@ -1,5 +1,6 @@
 from flask_restful.reqparse import RequestParser
-from www.config import configs
+
+from www.resources.config import configs
 
 __author__ = 'Mepla'
 
@@ -9,13 +10,13 @@ import time
 from flask_restful import Resource
 from flask import request
 
-from www.databases.factories import DatabaseFactory
+from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, survey_result_schema
 from www import oauth2
-from www.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
+from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
     DatabaseFindError
-from www.utilities.helpers import filter_general_document_db_record
-from www.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import filter_general_document_db_record
+from www.resources.utilities.helpers import uuid_with_prefix
 
 
 class BusinessSurveyResults(Resource):

@@ -2,16 +2,17 @@
 __author__ = 'Mepla'
 
 import logging
-
 from base64 import b64decode
+
 from flask import request, jsonify
 from flask_restful.reqparse import RequestParser
 from flask_restful import Resource
-from www.databases.factories import DatabaseFactory
-from www.databases.database_drivers import DatabaseFindError
-from www import auth, oauth2
-from www.authentication.password_management import PasswordManager
-from www.authentication.oauth2 import ClientNotAuthorized, ClientDoesNotExist
+
+from www.resources.databases.factories import DatabaseFactory
+from www.resources.databases.database_drivers import DatabaseFindError
+from www import oauth2
+from www.resources.authentication.password_management import PasswordManager
+from www.resources.authentication.oauth2 import ClientNotAuthorized, ClientDoesNotExist
 from www.resources.json_schemas import login_schema, validate_json, JsonValidationException
 
 

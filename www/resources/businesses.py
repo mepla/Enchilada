@@ -1,18 +1,18 @@
-from www.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
+from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
     DocumentNotUpdated, DatabaseEmptyResult
 
 __author__ = 'Mepla'
 
 from flask_restful import Resource
-from www.databases.factories import DatabaseFactory
+from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, business_update_schema, business_signup_schema, \
     business_category_add_single_schema, add_admin_for_business_schema
 from flask import request
-from www.utilities.helpers import filter_general_document_db_record, filter_user_info
+from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info
 
 import logging
 from www import oauth2
-from www.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import uuid_with_prefix
 
 
 class Businesses(Resource):
