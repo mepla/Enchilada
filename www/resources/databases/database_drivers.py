@@ -161,7 +161,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             self.docs_in_memory[existing_user.properties.get('uid')] = existing_user
             return dict(existing_user.properties)
         else:
-            raise DatabaseRecordNotFound
+            raise DatabaseRecordNotFound()
 
     def find_single_user_checkins(self, user_id, bid=None):
         existing_user = self._graph.find_one('user', 'uid', user_id)

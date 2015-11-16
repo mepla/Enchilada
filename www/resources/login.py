@@ -9,7 +9,7 @@ from flask_restful.reqparse import RequestParser
 from flask_restful import Resource
 
 from www.resources.databases.factories import DatabaseFactory
-from www.resources.databases.database_drivers import DatabaseFindError
+from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 from www import oauth2
 from www.resources.authentication.password_management import PasswordManager
 from www.resources.authentication.oauth2 import ClientNotAuthorized, ClientDoesNotExist
@@ -72,8 +72,13 @@ class Login(Resource):
             graph_db = DatabaseFactory().get_database_driver('graph')
             try:
                 existing_user = graph_db.find_single_user('email', username)
+            except DatabaseRecordNotFound as exc:
+                msg = {'message': 'Your username and password combination is not correct.'}
+                logging.error(msg)
+                return msg, 401
+
             except DatabaseFindError as exc:
-                msg = {'message': 'Internal server error'}, 500
+                msg = {'message': 'Internal server error'}
                 logging.error(msg)
                 return msg, 500
 
