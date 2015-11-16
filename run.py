@@ -2,9 +2,9 @@ __author__ = 'Mepla'
 
 import logging
 
-from resources.sign_up import SignUp
-from resources.login import Login
-from resources.users import User, Users
+from www.resources.sign_up import SignUp
+from www.resources.login import Login
+from www.resources.users import User, Users
 from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses, BusinessAdmins, BusinessAdmin
 from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn

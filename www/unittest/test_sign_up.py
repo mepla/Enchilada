@@ -1,10 +1,12 @@
 __author__ = 'Naja'
 
 import unittest
-from www import app, api
-from www.run import initialize_app
 import base64
 import json
+
+from www import app, api
+from run import initialize_app
+
 
 class FlaskrTestCase(unittest.TestCase):
 

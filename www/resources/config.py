@@ -3,7 +3,7 @@ __author__ = 'Mepla'
 import logging
 import json
 
-config_path = '/etc/enchilada/config.josn'
+config_path = '/etc/enchilada/enchilada.conf'
 
 default_configs = {
     "debug_mode": True,
