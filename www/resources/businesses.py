@@ -1,3 +1,4 @@
+import json
 from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
     DocumentNotUpdated, DatabaseEmptyResult
 
@@ -50,12 +51,22 @@ class BusinessProfile(Resource):
     def __init__(self):
         super(BusinessProfile, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     def get(self, uid, bid):
         logging.debug('Client requested for business profile.')
         try:
-            existing_business = self.graph_db.find_single_business('bid', bid)
+            # existing_business = self.graph_db.find_single_business('bid', bid)
+            # for key in existing_business.keys():
+            #     value = existing_business[key]
+            #     if isinstance(value, (str, unicode)) and '{' in value:
+            #         try:
+            #             existing_business[key] = json.loads(value)
+            #         except Exception as exc:
+            #             pass
+            existing_business = self.doc_db.find_doc('bid', bid, 'business')
+
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error'}
             logging.error(exc, msg)

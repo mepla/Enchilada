@@ -101,7 +101,7 @@ class MongoDatabase(DocumentDatabaseBase):
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
                 if not doc:
                     raise DatabaseRecordNotFound()
-                return doc
+                return filter_general_document_db_record(doc)
             else:
                 if sort_key:
                     directon = pymongo.DESCENDING if sort_direction == -1 else pymongo.ASCENDING
