@@ -21,6 +21,9 @@ default_configs = {
             "port": 27017,
             "max_page_limit": 30
         }
+    },
+    "STORAGE": {
+        "STORAGE_PATH": "/Users/Mepla/Projects/Python/Mine/Enchilada/storage"
     }
 }
 

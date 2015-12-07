@@ -1,3 +1,5 @@
+from www.resources.storage import Storage, StorageAccess
+
 __author__ = 'Mepla'
 
 import logging
@@ -46,6 +48,9 @@ def initialize_app():
     api.add_resource(BusinessPromotion, '/businesses/<string:bid>/promotions/<string:pid>')
     api.add_resource(EligiblePromotions, '/businesses/<string:bid>/promotions/eligible_for_me')
     api.add_resource(PromotionApply, '/businesses/<string:bid>/promotions/<string:pid>/apply')
+    api.add_resource(Storage, '/storage')
+    api.add_resource(StorageAccess, '/storage/<string:file_id>')
+
 
     api.add_resource(BusinessFollowers, '/businesses/<string:bid>/followers')
 

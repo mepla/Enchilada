@@ -20,7 +20,8 @@ signup_schema = {
         "device": { "type": "string" },
         "udid": { "type": "string" },
         "latitude": { "type": "number" },
-        "longitude": { "type": "number" }
+        "longitude": { "type": "number" },
+        "image": ""
     },
     # TODO: TEMPORARY
     "additionalProperties": True,
@@ -31,17 +32,18 @@ signup_schema = {
 user_put_schema = {
     "type": "object",
     "properties":{
-        "f_name":  { "type": "string" },
-        "l_name": { "type": "string" },
+        "name":  { "type": "string" },
+        "lastname": { "type": "string" },
         "email": { "type": "string" },
         "gender": { "type": "string" },
         "birth_date": { "type": "string" },
         "device": { "type": "string" },
         "udid": { "type": "string" },
         "latitude": { "type": "number" },
-        "longitude": { "type": "number" }
+        "longitude": { "type": "number" },
+        "image": ""
     },
-    "additionalProperties": False
+    "additionalProperties": True
 }
 
 login_schema = {
