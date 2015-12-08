@@ -5,7 +5,8 @@ import json
 
 config_path = '/etc/enchilada/enchilada.conf'
 
-default_configs = {
+default_configs = \
+{
     "debug_mode": True,
     "LOGLEVEL": "DEBUG",
     "DATABASES": {

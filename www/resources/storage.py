@@ -65,7 +65,7 @@ class StorageAccess(Resource):
     def get(self, file_id, uid=None):
         directory = configs['STORAGE']['STORAGE_PATH']
         directory = directory.rstrip('/') + '/' + uid
-        
+
         if not os.path.isfile(directory + '/' + file_id):
             return make_response(jsonify({'reason': 'The file you requested does not exits.'}), 404)
         else:
