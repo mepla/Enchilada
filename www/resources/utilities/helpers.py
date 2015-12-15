@@ -82,6 +82,14 @@ def date_formatted(date):
     return date.strftime('%Y-%m-%d %H:%M:%S')
 
 
+def utc_now_timestamp():
+    return timestamp_from_date(datetime.datetime.utcnow())
+
+
+def timestamp_from_date(date):
+    return (date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0)).total_seconds()
+
+
 class Patch(object):
     @staticmethod
     def patch_doc(patch_array, doc, read_only_paths):

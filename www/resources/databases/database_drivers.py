@@ -9,7 +9,7 @@ from operator import itemgetter
 from py2neo import Graph, Node, Relationship, authenticate
 from pymongo import MongoClient
 
-from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info
 
 
@@ -285,7 +285,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         except Exception as exc:
             raise DatabaseEmptyResult
 
-        print time.time()
+        print utc_now_timestamp()
         response_list = list()
         for res in results:
             user = res.start_node
@@ -293,7 +293,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             for t in timestamps:
                 response_list.append({'timestamp': t, 'uid': user.properties['uid'],
                                       'name': user.properties['f_name'] + ' ' + user.properties['l_name']})
-        print time.time()
+        print utc_now_timestamp()
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
@@ -316,7 +316,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             return existing_relation.properties
         else:
             new_id = uuid_with_prefix('fid')
-            timestamp = str(time.time())
+            timestamp = str(utc_now_timestamp())
             new_relation = Relationship(user, 'FOLLOWS', end_node, fid=new_id, timestamp=timestamp)
             self._graph.create(new_relation)
             return new_relation.properties
@@ -435,12 +435,12 @@ class Neo4jDatabase(GraphDatabaseBase):
         existing_relation = self._graph.match_one(user, "CHECK_IN", business)
         if existing_relation:
             existing_relation.properties['count'] += 1
-            existing_relation.properties['timestamps'] = str(time.time()) + ' ' + existing_relation.properties['timestamps']
+            existing_relation.properties['timestamps'] = str(utc_now_timestamp()) + ' ' + existing_relation.properties['timestamps']
             existing_relation.push()
             return existing_relation.properties
         else:
             new_id = uuid_with_prefix('rid')
-            timestamps = str(time.time())
+            timestamps = str(utc_now_timestamp())
             new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, timestamps=timestamps)
             self._graph.create(new_relation)
             return new_relation.properties

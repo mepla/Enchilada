@@ -11,7 +11,7 @@ from flask import request
 
 from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
 from www.resources.utilities.helpers import filter_general_document_db_record
@@ -104,7 +104,7 @@ class BusinessMessages(Resource):
             logging.error(msg)
             return msg, 500
 
-        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
+        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
 
         try:
             self.doc_db.save(doc, 'business_messages')

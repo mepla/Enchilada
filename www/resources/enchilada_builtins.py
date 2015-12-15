@@ -2,12 +2,14 @@ __author__ = 'Mepla'
 
 import time
 
+
 class BaseEntity(object):
     def __init__(self, entity_id):
         self.id = entity_id
 
+
 class User(BaseEntity):
-    def __init__(self, user_id, f_name, l_name, gender, email, creation_date=time.time(), is_active=False, **kwargs):
+    def __init__(self, user_id, f_name, l_name, gender, email, creation_date=None, is_active=False, **kwargs):
         super(User, self).__init__(user_id)
         self.first_name = f_name
         self.last_name = l_name
@@ -29,7 +31,7 @@ class User(BaseEntity):
 
 
 class Business(BaseEntity):
-    def __init__(self, business_id, name, category, email, creation_date=time.time(), is_active=False, **kwargs):
+    def __init__(self, business_id, name, category, email, creation_date=None, is_active=False, **kwargs):
         super(Business, self).__init__(business_id)
         self.name = name
         self.category = category
@@ -72,7 +74,7 @@ class CheckedIn(BaseEntity):
         self.survey_result = kwargs.get('survey_result')
 
 class Follow(BaseEntity):
-    def __init__(self, follow_id, creation_date=time.time(), type=None, status=0):
+    def __init__(self, follow_id, creation_date=None, type=None, status=0):
         super(Follow, self).__init__(follow_id)
         self.creation_date = creation_date
         self.status = status
@@ -80,7 +82,7 @@ class Follow(BaseEntity):
 
 
 class IsChild(BaseEntity):
-    def __init__(self, follow_id, creation_date=time.time(), type=None, status=0):
+    def __init__(self, follow_id, creation_date=None, type=None, status=0):
         super(IsChild, self).__init__(follow_id)
         self.creation_date = creation_date
         self.status = status

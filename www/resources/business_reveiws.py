@@ -14,7 +14,7 @@ from www.resources.databases.database_drivers import DatabaseSaveError, Database
     DatabaseEmptyResult
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, review_schema
-from www.resources.utilities.helpers import filter_general_document_db_record
+from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp
 from www.resources.utilities.helpers import uuid_with_prefix
 from www import oauth2
 
@@ -138,7 +138,7 @@ class BusinessReviews(Resource):
             logging.error(msg)
             return msg, 500
 
-        doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid')}
+        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid')}
 
         min_acceptatble_rating = configs.get("POLICIES").get('reviews').get('lowest_acceptable_rating')
         rating = data.get('rating')

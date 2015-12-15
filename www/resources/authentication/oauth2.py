@@ -7,7 +7,7 @@ import re
 
 from flask import request
 
-from www.resources.utilities.helpers import uuid_with_prefix
+from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseFindError
 
@@ -55,7 +55,7 @@ class OAuth2Provider(object):
             raise ClientDoesNotExist()
 
         doc = {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer',
-               'scope': scope, 'uid': uid, 'client_id': client_id, 'issue_date': time.time()}
+               'scope': scope, 'uid': uid, 'client_id': client_id, 'issue_date': utc_now_timestamp()}
         self.auth_db.save(doc, 'tokens')
 
         return {'access_token': access_token, 'refresh_token': refresh_token, 'expires_in': ttl, 'token_type': 'Bearer', 'scope': scope}
@@ -110,7 +110,7 @@ class OAuth2Provider(object):
                     logging.error(msg)
                     return msg, 401
 
-                if time.time() - token_doc.get('issue_date') > token_doc.get('expires_in'):
+                if utc_now_timestamp() - token_doc.get('issue_date') > token_doc.get('expires_in'):
                     msg = {'message': 'Your access token is expired, please refresh it using your refresh token.'}
                     logging.error(msg)
                     return msg, 401

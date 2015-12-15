@@ -15,7 +15,7 @@ from www.resources.json_schemas import validate_json, JsonValidationException, s
 from www import oauth2
 from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
     DatabaseFindError
-from www.resources.utilities.helpers import filter_general_document_db_record
+from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp
 from www.resources.utilities.helpers import uuid_with_prefix
 
 
@@ -54,7 +54,7 @@ class BusinessSurveyResults(Resource):
 
         data['uid'] = uid
         data['bid'] = bid
-        data['timestamp'] = time.time()
+        data['timestamp'] = utc_now_timestamp()
         data['srid'] = uuid_with_prefix('srid')
 
         try:
