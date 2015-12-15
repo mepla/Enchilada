@@ -112,21 +112,20 @@ business_category_add_single_schema = '''
 }
 '''
 
-patch_schema = '''
-{
-    "type": "array",
-    "items": {
-        "type": "object",
-        "properties":{
-            "op":  { "type": "string" },
-            "path":  { "type": "string" },
-            "value":  { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": [ "op", "path", "value"]
+patch_schema = \
+    {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties":{
+                "op":  { "type": "string" },
+                "path":  { "type": "string" },
+                "value":  { "type": "string" }
+            },
+            "additionalProperties": False,
+            "required": [ "op", "path", "value"]
+        }
     }
-}
-'''
 
 survey_result_schema = '''
 {
@@ -145,92 +144,89 @@ survey_result_schema = '''
 }
 '''
 
-message_schema = '''
-{
-    "type": "object",
-    "properties":{
-        "subject":  { "type": "string" },
-        "body":  { "type": "string" }
-    },
-    "additionalProperties": false,
-    "required": [ "body"]
-}
-'''
-
-review_schema = '''
-{
-    "type": "object",
-    "properties":{
-        "subject":  { "type": "string" },
-        "body":  { "type": "string" },
-        "rating":  { "type": "integer" }
-    },
-    "additionalProperties": false,
-    "required": [ "body"]
-}
-'''
-
-add_admin_for_business_schema = '''
-{
-    "type": "object",
-    "properties":{
-        "uid":  { "type": "string" }
-    },
-    "additionalProperties": false,
-    "required": [ "uid"]
-}
-'''
-
-
-create_promotion_schema = '''
-{
-    "type": "object",
-    "properties":{
-        "title":  { "type": "string" },
-        "description":  { "type": "string" },
-        "life_span": {
-            "type": "object",
-            "properties": {
-                "start_date":  { "type": "string" },
-                "end_date":  { "type": "string" },
-                "start_hour":  { "type": "string" },
-                "end_hour":  { "type": "string" },
-                "days_of_week": {"type": "array"}
-            }
+message_schema = \
+    {
+        "type": "object",
+        "properties":{
+            "subject":  { "type": "string" },
+            "body":  { "type": "string" }
         },
-        "conditions": {
-            "type": "object",
-            "properties": {
-                "gender":  { "type": "string" },
-                "must_follow":  { "type": "boolean" },
-                "age": {
-                    "type": "object",
-                    "properties": {
-                        "from": { "type": "integer" },
-                        "to": { "type": "integer" }
-                    }
-                },
-                "checkins": {
-                    "type": "object",
-                    "properties": {
-                        "min": { "type": "integer" },
-                        "max": { "type": "integer" },
-                        "days_since_last": { "type": "integer" }
-                    }
-                },
-                "special_conditions": {
-                    "type": "object",
-                    "properties": {
-                        "must_be_birthday": { "type": "boolean" }
+        "additionalProperties": False,
+        "required": [ "body"]
+    }
+
+review_schema = \
+    {
+        "type": "object",
+        "properties": {
+            "subject":  {"type": "string"},
+            "body":  {"type": "string"},
+            "rating": {"type": "number", "multipleOf": 0.5, "minimum": 0.0, "maximum": 5}
+        },
+        "additionalProperties": False,
+        "required": ["body"]
+    }
+
+
+add_admin_for_business_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "uid":  {"type": "string"}
+        },
+        "additionalProperties": False,
+        "required": [ "uid"]
+    }
+
+
+create_promotion_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "title":  { "type": "string" },
+            "description":  { "type": "string" },
+            "life_span": {
+                "type": "object",
+                "properties": {
+                    "start_date":  { "type": "string" },
+                    "end_date":  { "type": "string" },
+                    "start_hour":  { "type": "string" },
+                    "end_hour":  { "type": "string" },
+                    "days_of_week": {"type": "array"}
+                }
+            },
+            "conditions": {
+                "type": "object",
+                "properties": {
+                    "gender":  { "type": "string" },
+                    "must_follow":  { "type": "boolean" },
+                    "age": {
+                        "type": "object",
+                        "properties": {
+                            "from": { "type": "integer" },
+                            "to": { "type": "integer" }
+                        }
+                    },
+                    "checkins": {
+                        "type": "object",
+                        "properties": {
+                            "min": { "type": "integer" },
+                            "max": { "type": "integer" },
+                            "days_since_last": { "type": "integer" }
+                        }
+                    },
+                    "special_conditions": {
+                        "type": "object",
+                        "properties": {
+                            "must_be_birthday": { "type": "boolean" }
+                        }
                     }
                 }
             }
-        }
-    },
-    "additionalProperties": false,
-    "required": [ "title", "description", "conditions", "life_span"]
-}
-'''
+        },
+        "additionalProperties": False,
+        "required": ["title", "description", "conditions", "life_span"]
+    }
 
 
 def validate_json(json_data, schema):

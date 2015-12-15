@@ -30,6 +30,9 @@ class BusinessReviews(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('status', type=str, help='`status` argument must be a string')
+        parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
+        parser.add_argument('return_count', type=bool, help='`return_count` argument must be a boolean.')
 
         args = parser.parse_args()
 
@@ -41,7 +44,20 @@ class BusinessReviews(Resource):
             logging.debug(msg)
             return msg, 400
 
-        conditions = {}
+        status = args.get('status')
+        if not status:
+            status = 'accepted'
+
+        if status == 'all':
+            conditions = {}
+        else:
+            conditions = {'status': status}
+
+        rating = args.get('rating')
+        if rating:
+            conditions['data'] = {'rating': rating}
+
+        return_count = args.get('return_count')
 
         if before:
             conditions['timestamp'] = {'$lt': before}
@@ -58,7 +74,12 @@ class BusinessReviews(Resource):
             limit = max_limit
 
         try:
-            reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+            if return_count:
+                count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions)
+                return {'count': count}
+            else:
+                reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+                return filter_general_document_db_record(reviews)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
@@ -75,7 +96,7 @@ class BusinessReviews(Resource):
             logging.info(msg)
             return msg, 204
 
-        return filter_general_document_db_record(reviews)
+
 
     @oauth2.check_access_token
     def post(self, uid, bid):
@@ -94,7 +115,7 @@ class BusinessReviews(Resource):
             return msg, 400
 
         try:
-            existing_business = self.graph_db.find_single_business('bid', bid)
+            existing_business = self.doc_db.find_doc('bid', bid, 'business', limit=1)
         except DatabaseRecordNotFound as exc:
             msg = {'message': 'The business you tried to create promotion for does not exist.'}
             logging.debug(msg)
@@ -107,7 +128,30 @@ class BusinessReviews(Resource):
 
         doc = {'data': data, 'timestamp': time.time(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid')}
 
+        min_acceptatble_rating = configs.get("POLICIES").get('reviews').get('lowest_acceptable_rating')
+        rating = data.get('rating')
+        if rating <= min_acceptatble_rating:
+            doc['status'] = 'needs_acceptance'
+        else:
+            doc['status'] = 'accepted'
+            try:
+                reviews_count = existing_business.get('reviews').get('count')
+            except Exception as exc:
+                existing_business['reviews'] = {'count': 0, 'rating_average': 0}
+                reviews_count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions={'status': 'accepted'})
+
+            try:
+                reviews_average = existing_business.get('reviews').get('average_rating')
+            except Exception as exc:
+                logging.fatal('There was not a rating_average in business document (There really should be one).')
+                reviews_average = 0
+
+            new_average = float(reviews_average * reviews_count + rating) / float(reviews_count + 1)
+            existing_business['reviews']['average_rating'] = new_average
+            existing_business['reviews']['count'] = reviews_count + 1
+
         try:
+            self.doc_db.update(existing_business, 'bid', bid, 'business')
             self.doc_db.save(doc, 'business_reviews')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}

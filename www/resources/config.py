@@ -25,6 +25,11 @@ default_configs = \
     },
     "STORAGE": {
         "STORAGE_PATH": "/Users/Mepla/Projects/Python/Mine/Enchilada/storage"
+    },
+    "POLICIES": {
+        "reviews": {
+            "lowest_acceptable_rating": 2
+        }
     }
 }
 

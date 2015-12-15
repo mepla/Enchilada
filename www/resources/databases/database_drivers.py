@@ -80,6 +80,19 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
 
+    def update(self, doc, key, value, doc_type, multiple=False):
+        if not doc_type:
+            raise DatabaseSaveError('No doc_type provided.')
+
+        try:
+            if multiple:
+                objs = self._mongo_db[doc_type].replace_many({key: value}, doc, ordered=False)
+            else:
+                obj = self._mongo_db[doc_type].replace_one({key: value}, doc)
+        except Exception as exc:
+            logging.error('Error updating doc: {} exc: {}'.format(self._mongo_db, exc))
+            raise DatabaseSaveError()
+
     def delete(self, doc_type, conditions, multiple=False):
         if multiple:
             result = self._mongo_db[doc_type].delete_many(conditions)
@@ -87,6 +100,30 @@ class MongoDatabase(DocumentDatabaseBase):
             result = self._mongo_db[doc_type].delete_one(conditions)
 
         return result.deleted_count
+
+    def find_count(self, key, value, doc_type, conditions=None):
+        try:
+            find_predicate = {}
+            if conditions:
+                find_predicate = conditions
+
+            if key and value:
+                find_predicate[key] = value
+
+            find_predicate = self._convert_conditions_to_mongo_style(find_predicate)
+
+            count = self._mongo_db[doc_type].count(find_predicate)
+            return count
+
+        except DatabaseRecordNotFound as exc:
+            raise exc
+
+        except DatabaseEmptyResult as exc:
+            raise exc
+
+        except Exception as exc:
+            logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
+            raise DatabaseFindError()
 
     def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1):
         try:
@@ -96,6 +133,8 @@ class MongoDatabase(DocumentDatabaseBase):
 
             if key and value:
                 find_predicate[key] = value
+
+            find_predicate = self._convert_conditions_to_mongo_style(find_predicate)
 
             if limit == 1:
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
@@ -124,6 +163,18 @@ class MongoDatabase(DocumentDatabaseBase):
         except Exception as exc:
             logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseFindError()
+
+    def _convert_conditions_to_mongo_style(self, conditions):
+        return_conditions = {}
+        for key, value in conditions.items():
+            if isinstance(value, dict):
+                child_dict = self._convert_conditions_to_mongo_style(value)
+                for child_key, child_value in child_dict.items():
+                    root_key_str = str(key) + '.' + str(child_key)
+                    return_conditions[root_key_str] = child_value
+            else:
+                return_conditions[key] = value
+        return return_conditions
 
 
 class Neo4jDatabase(GraphDatabaseBase):
