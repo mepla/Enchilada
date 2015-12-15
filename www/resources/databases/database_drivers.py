@@ -289,6 +289,64 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
 
+    def find_user_followers(self, uid):
+        try:
+            user = self._graph.find_one('user', 'uid', uid)
+            if not user:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        try:
+            results = self._graph.match(None, "FOLLOWS", user)
+            if not results:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult
+
+        response_list = list()
+        for res in results:
+            user = res.start_node
+            timestamp = res.properties['timestamp']
+            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
+
+        response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
+        return response_list
+
+    def find_user_followings(self, uid, users=True, businesses=True):
+        try:
+            user = self._graph.find_one('user', 'uid', uid)
+            if not user:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        following_type = ''
+        if not businesses and not users:
+            raise DatabaseEmptyResult()
+        if users and not businesses:
+            following_type = ':user'
+        if businesses and not users:
+            following_type = ":business"
+
+        try:
+            cypher_statement = "match (n:user {uid: '%s'}) -[r:FOLLOWS]-> (m%s) return r" % (uid, following_type)
+            results = self._graph.cypher.execute(cypher_statement)
+            if not results:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult()
+
+        response_list = list()
+        for record in results:
+            res = record.r
+            user = res.start_node
+            timestamp = res.properties['timestamp']
+            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
+
+        response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
+        return response_list
+
     def is_follower(self, uid, business_or_user_id):
         try:
             if business_or_user_id.find('uid') == 0:

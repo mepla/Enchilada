@@ -1,4 +1,6 @@
 from www.resources.storage import Storage, StorageAccess
+from www.resources.user_followers import UserFollowers
+from www.resources.user_followings import UserFollowings
 
 __author__ = 'Mepla'
 
@@ -51,8 +53,9 @@ def initialize_app():
     api.add_resource(Storage, '/storage')
     api.add_resource(StorageAccess, '/storage/<string:file_id>')
 
-
     api.add_resource(BusinessFollowers, '/businesses/<string:bid>/followers')
+    api.add_resource(UserFollowers, '/users/<string:target_uid>/followers')
+    api.add_resource(UserFollowings, '/users/<string:target_uid>/followings')
 
 if __name__ == '__main__':
     initialize_app()
