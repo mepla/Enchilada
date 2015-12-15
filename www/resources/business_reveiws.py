@@ -33,6 +33,7 @@ class BusinessReviews(Resource):
         parser.add_argument('status', type=str, help='`status` argument must be a string')
         parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
         parser.add_argument('return_count', type=bool, help='`return_count` argument must be a boolean.')
+        parser.add_argument('return_friends', type=bool, help='`return_friends` argument must be a boolean.')
 
         args = parser.parse_args()
 
@@ -59,6 +60,7 @@ class BusinessReviews(Resource):
 
         return_count = args.get('return_count')
 
+        # TODO: They syntax of querying should not be exposed to this layer.
         if before:
             conditions['timestamp'] = {'$lt': before}
 
@@ -67,6 +69,18 @@ class BusinessReviews(Resource):
                 conditions['timestamp']['$gt'] = after
             else:
                 conditions['timestamp'] = {'$gt': after}
+
+        return_friends = args.get('return_friends')
+        if return_friends:
+            try:
+                result = self.graph_db.find_user_followings(uid, users=True, businesses=False)
+            except (DatabaseRecordNotFound, DatabaseEmptyResult):
+                if return_count:
+                    return {'count': 0}
+                else:
+                    return []
+            following_uids = [str(following_user.get('user').get('uid')) for following_user in result]
+            conditions['uid'] = {'$in': following_uids}
 
         limit = args.get('limit')
         max_limit = configs.get('DATABASES').get('mongodb').get('max_page_limit')
@@ -95,8 +109,6 @@ class BusinessReviews(Resource):
             msg = {'message': 'There are no reviews.'}
             logging.info(msg)
             return msg, 204
-
-
 
     @oauth2.check_access_token
     def post(self, uid, bid):

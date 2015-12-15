@@ -126,6 +126,7 @@ class MongoDatabase(DocumentDatabaseBase):
             raise DatabaseFindError()
 
     def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1):
+        print key, value, doc_type, conditions
         try:
             find_predicate = {}
             if conditions:
@@ -135,7 +136,7 @@ class MongoDatabase(DocumentDatabaseBase):
                 find_predicate[key] = value
 
             find_predicate = self._convert_conditions_to_mongo_style(find_predicate)
-
+            print(find_predicate)
             if limit == 1:
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
                 if not doc:
@@ -165,13 +166,17 @@ class MongoDatabase(DocumentDatabaseBase):
             raise DatabaseFindError()
 
     def _convert_conditions_to_mongo_style(self, conditions):
+        # TODO: This works a bit weird if the sub dictionary contains a dictionary that has a key starting with $ and other keys.
         return_conditions = {}
         for key, value in conditions.items():
             if isinstance(value, dict):
                 child_dict = self._convert_conditions_to_mongo_style(value)
                 for child_key, child_value in child_dict.items():
-                    root_key_str = str(key) + '.' + str(child_key)
-                    return_conditions[root_key_str] = child_value
+                    if child_key.startswith('$'):
+                        return_conditions[key] = value
+                    else:
+                        root_key_str = str(key) + '.' + str(child_key)
+                        return_conditions[root_key_str] = child_value
             else:
                 return_conditions[key] = value
         return return_conditions
@@ -391,7 +396,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = list()
         for record in results:
             res = record.r
-            user = res.start_node
+            user = res.end_node
             timestamp = res.properties['timestamp']
             response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
 
