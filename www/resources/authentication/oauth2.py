@@ -9,7 +9,7 @@ from flask import request
 
 from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
-from www.resources.databases.database_drivers import DatabaseFindError
+from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DatabaseEmptyResult
 
 max_ttl = 604800
 
@@ -64,6 +64,16 @@ class OAuth2Provider(object):
         try:
             doc = self.auth_db.find_doc('refresh_token', refresh_token, 'tokens')
         except DatabaseFindError as exc:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'You refresh token does not exit.'}
+            logging.error(msg)
+            return msg, 400
+
+        except DatabaseEmptyResult as exc:
             msg = {'message': 'You refresh token does not exit.'}
             logging.error(msg)
             return msg, 400

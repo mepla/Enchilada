@@ -23,35 +23,36 @@ class Login(Resource):
     def post(self):
         arg_parser = RequestParser()
         arg_parser.add_argument('grant_type', type=str, help='Your request must contain a \'grant_type\' query string. Please check the documentation.', required=True)
+        arg_parser.add_argument('refresh_token', type=str, required=False)
         args = arg_parser.parse_args()
+        try:
+            authorization = request.headers.get('Authorization')
+            (auth_type, auth_base64) = authorization.split(' ')
+            (client_id, client_secret) = b64decode(auth_base64).split(':')
+        except Exception as exc:
+            msg = {'message': 'Your HTTP Authorization header must be set to Basic HTTP authentication of your client_id and client_secret.'}
+            logging.error(msg)
+            return msg, 401
+
+        if 'scope' not in request.headers:
+            msg = {'message': 'Your HTTP headers must have a \'scope\' parameter which is a space separated list of needed scopes.'}
+            logging.error(msg)
+            return msg, 401
+
+        scope = request.headers.get('scope')
+
+        try:
+            oauth2.client_id_check(client_id, client_secret, scope)
+        except ClientNotAuthorized as exc:
+            msg = {'message': 'You are not an authorized client.'}
+            logging.error(msg)
+            return msg, 401
+        except ClientDoesNotExist:
+            msg = {'message': 'Your username and password combination is not correct.'}
+            logging.error(msg)
+            return msg, 401
+
         if args['grant_type'] == 'password':
-            try:
-                authorization = request.headers.get('Authorization')
-                (auth_type, auth_base64) = authorization.split(' ')
-                (client_id, client_secret) = b64decode(auth_base64).split(':')
-            except Exception as exc:
-                msg = {'message': 'Your HTTP Authorization header must be set to Basic HTTP authentication of your client_id and client_secret.'}
-                logging.error(msg)
-                return msg, 401
-
-            if 'scope' not in request.headers:
-                msg = {'message': 'Your HTTP headers must have a \'scope\' parameter which is a space separated list of needed scopes.'}
-                logging.error(msg)
-                return msg, 401
-
-            scope = request.headers.get('scope')
-
-            try:
-                oauth2.client_id_check(client_id, client_secret, scope)
-            except ClientNotAuthorized as exc:
-                msg = {'message': 'You are not an authorized client.'}
-                logging.error(msg)
-                return msg, 401
-            except ClientDoesNotExist:
-                msg = {'message': 'Your username and password combination is not correct.'}
-                logging.error(msg)
-                return msg, 401
-
             try:
                 data = request.get_json(force=True, silent=False)
             except Exception as exc:
@@ -93,5 +94,6 @@ class Login(Resource):
                 msg = {'message': 'Your username and password combination is not correct.'}
                 return msg, 401
 
-        else:
-            pass
+        if args['grant_type'] == 'refresh_token':
+            refresh_token = args.get('refresh_token')
+            return oauth2.refresh_access_token(refresh_token)
