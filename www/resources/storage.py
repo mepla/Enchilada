@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from www import oauth2, app
 from www.resources.config import configs
+from www.resources.utilities.helpers import uuid_with_prefix
 
 __author__ = 'Mepla'
 
@@ -17,7 +18,7 @@ class Storage(Resource):
 
     @oauth2.check_access_token
     def post(self, uid=None):
-        filename = str(uuid.uuid4().hex)
+        filename = uuid_with_prefix('f')
 
         uploaded_file = None
         for file_key in request.files.keys():
