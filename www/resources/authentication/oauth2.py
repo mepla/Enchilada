@@ -17,14 +17,22 @@ max_ttl = 604800
 class ClientNotAuthorized(Exception):
     pass
 
+
 class ClientDoesNotExist(Exception):
     pass
+
 
 class ClientWithWrongScopes(Exception):
     pass
 
+
 class AccessToResourceDenied(Exception):
     pass
+
+
+class WrongRefreshToken(Exception):
+    pass
+
 
 class OAuth2Provider(object):
     def __init__(self):
@@ -64,31 +72,24 @@ class OAuth2Provider(object):
         try:
             doc = self.auth_db.find_doc('refresh_token', refresh_token, 'tokens')
         except DatabaseFindError as exc:
-            msg = {'message': 'You refresh token does not exit.'}
-            logging.error(msg)
-            return msg, 400
+            raise exc
 
-        except DatabaseRecordNotFound as exc:
-            msg = {'message': 'You refresh token does not exit.'}
-            logging.error(msg)
-            return msg, 400
-
-        except DatabaseEmptyResult as exc:
-            msg = {'message': 'You refresh token does not exit.'}
-            logging.error(msg)
-            return msg, 400
+        except (DatabaseEmptyResult, DatabaseRecordNotFound) as exc:
+            raise WrongRefreshToken()
 
         if doc:
             uid = doc.get('uid')
             c_id = doc.get('client_id')
             scope = doc.get('scope')
             ttl = doc.get('expires_in')
-            return self.generate_access_token(uid, c_id, scope, ttl)
+
+            result = self.generate_access_token(uid, c_id, scope, ttl)
+            if result.get('access_token'):
+                self.auth_db.delete('tokens', {'refresh_token': refresh_token})
+            return result
 
         else:
-            msg = {'message': 'You refresh token does not exit.'}
-            logging.error(msg)
-            return msg, 400
+            raise WrongRefreshToken()
 
     def check_access_token(self, f):
         @wraps(f)

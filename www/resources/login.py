@@ -12,7 +12,7 @@ from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 from www import oauth2
 from www.resources.authentication.password_management import PasswordManager
-from www.resources.authentication.oauth2 import ClientNotAuthorized, ClientDoesNotExist
+from www.resources.authentication.oauth2 import ClientNotAuthorized, ClientDoesNotExist, WrongRefreshToken
 from www.resources.json_schemas import login_schema, validate_json, JsonValidationException
 
 
@@ -94,6 +94,15 @@ class Login(Resource):
                 msg = {'message': 'Your username and password combination is not correct.'}
                 return msg, 401
 
-        if args['grant_type'] == 'refresh_token':
+        elif args['grant_type'] == 'refresh_token':
             refresh_token = args.get('refresh_token')
-            return oauth2.refresh_access_token(refresh_token)
+            try:
+                return oauth2.refresh_access_token(refresh_token)
+            except WrongRefreshToken:
+                msg = 'Your refresh token either does not exist or has expired.'
+                logging.error(msg)
+                return {'message': msg}, 400
+            except Exception as exc:
+                msg = 'Internal Server Error'
+                logging.error('{}: {}'.format(msg, exc))
+                return {'message': msg}, 500
