@@ -30,10 +30,13 @@ class BusinessReviews(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('sort_by', type=str, help='`sort_by` argument must be a string.')
+        parser.add_argument('sort_order', type=str, help='`sort_order` argument must be a string.')
         parser.add_argument('status', type=str, help='`status` argument must be a string')
         parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
         parser.add_argument('return_count', type=bool, help='`return_count` argument must be a boolean.')
         parser.add_argument('return_friends', type=bool, help='`return_friends` argument must be a boolean.')
+        parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
 
         args = parser.parse_args()
 
@@ -44,6 +47,32 @@ class BusinessReviews(Resource):
             msg = {'message': '`before` argument must be greater than or equal to `after`.'}
             logging.debug(msg)
             return msg, 400
+
+        sort_by = args.get('sort_by')
+        if not sort_by:
+            sort_by = 'timestamp'
+
+        if sort_by not in ['timestamp', 'rating']:
+            msg = {'message': '`sort_by` argument must either `timestamp` or `rating`.'}
+            logging.debug(msg)
+            return msg, 400
+
+        if sort_by == 'rating':
+            sort_by = 'data.rating'
+
+        sort_order = args.get('sort_order')
+        if not sort_order:
+            sort_order = 'descending'
+
+        if sort_order not in ['ascending', 'descending']:
+            msg = {'message': '`sort_order` argument must either `ascending` or `descending`.'}
+            logging.debug(msg)
+            return msg, 400
+
+        if sort_order == 'ascending':
+            sort_order = 1
+        else:
+            sort_order = -1
 
         status = args.get('status')
         if not status:
@@ -87,12 +116,22 @@ class BusinessReviews(Resource):
         if not limit or limit > max_limit:
             limit = max_limit
 
+        include_user_info = args.get('include_user_info')
         try:
             if return_count:
                 count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions)
                 return {'count': count}
             else:
-                reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+                reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key=sort_by, sort_direction=sort_order)
+                if include_user_info:
+                    for review in reviews:
+                        review_uid = review.get('uid')
+                        try:
+                            existing_user = self.graph_db.find_single_user('uid', review_uid)
+                            review['user'] = existing_user
+                        except Exception as exc:
+                            logging.error('Could not fetch user info in Business Reviews: {}'.format(exc))
+
                 return filter_general_document_db_record(reviews)
 
         except DatabaseFindError as exc:
@@ -198,3 +237,46 @@ class BusinessReview(Resource):
             return msg, 204
 
         return filter_general_document_db_record(message)
+
+
+class BusinessReviewsSummary(Resource):
+    def __init__(self):
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+
+    def get(self, bid, uid=None):
+        return_doc = {0.5: 0, 1: 0, 1.5: 0, 2: 0, 2.5: 0, 3: 0, 3.5: 0, 4: 0, 4.5: 0, 5: 0}
+
+        parser = RequestParser()
+        parser.add_argument('latest', type=bool, help='`latest` argument must be a boolean.')
+        args = parser.parse_args()
+
+        latest = args.get('latest')
+
+        try:
+            if latest:
+                limit = configs.get('POLICIES').get('reviews').get('latest_count')
+                reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions={'status': 'accepted'}, sort_key='timestamp', sort_direction=-1)
+                for review in reviews:
+                    return_doc[review.get('data').get('rating')] += 1
+            else:
+                for i in range(1, 11):
+                    key = float(i)/float(2)
+                    count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions={'status': 'accepted', 'data': {'rating': key}})
+                    return_doc[key] = count
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
+
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The information you requested is not found'}
+            logging.info(msg)
+            return msg, 404
+
+        except DatabaseEmptyResult as exc:
+            msg = {'message': 'There are no reviews.'}
+            logging.info(msg)
+            return msg, 204
+
+        return return_doc

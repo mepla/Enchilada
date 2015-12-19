@@ -15,7 +15,7 @@ from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
 from www.resources.business_messages import BusinessMessage, BusinessMessages
-from www.resources.business_reveiws import BusinessReview, BusinessReviews
+from www.resources.business_reveiws import BusinessReview, BusinessReviews, BusinessReviewsSummary
 from www.resources.business_promotions import BusinessPromotion, BusinessPromotions, EligiblePromotions, PromotionApply
 from www.resources.business_followers import BusinessFollowers
 from www import api, app
@@ -44,6 +44,7 @@ def initialize_app():
     api.add_resource(BusinessMessage, '/businesses/<string:bid>/messages/<string:mid>')
     api.add_resource(BusinessReviews, '/businesses/<string:bid>/reviews')
     api.add_resource(BusinessReview, '/businesses/<string:bid>/reviews/<string:rid>')
+    api.add_resource(BusinessReviewsSummary, '/businesses/<string:bid>/reviews_summary')
     api.add_resource(Businesses, '/businesses')
     api.add_resource(BusinessAdmins, '/businesses/<string:bid>/admins')
     api.add_resource(BusinessAdmin, '/businesses/<string:bid>/admins/<string:admin_uid>')

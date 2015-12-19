@@ -28,7 +28,8 @@ default_configs = \
     },
     "POLICIES": {
         "reviews": {
-            "lowest_acceptable_rating": 2
+            "lowest_acceptable_rating": 2,
+            "latest_count": 10
         }
     }
 }
