@@ -2,6 +2,7 @@ from www.resources.business_faq import BusinessFAQ
 from www.resources.storage import Storage, StorageAccess
 from www.resources.user_followers import UserFollowers
 from www.resources.user_followings import UserFollowings
+from www.resources.user_messages import UserMessages, UserMessage
 
 __author__ = 'Mepla'
 
@@ -58,6 +59,9 @@ def initialize_app():
     api.add_resource(BusinessFollowers, '/businesses/<string:bid>/followers')
     api.add_resource(UserFollowers, '/users/<string:target_uid>/followers')
     api.add_resource(UserFollowings, '/users/<string:target_uid>/followings')
+    api.add_resource(UserMessages, '/users/<string:target_uid>/messages')
+    api.add_resource(UserMessage, '/users/<string:target_uid>/messages/<string:mid>')
+
 
 if __name__ == '__main__':
     initialize_app()

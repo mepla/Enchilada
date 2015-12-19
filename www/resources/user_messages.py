@@ -18,12 +18,13 @@ from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2
 
 
-class BusinessMessages(Resource):
+class UserMessages(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
-    def get(self, uid, bid):
+    def get(self, uid, target_uid):
         parser = RequestParser()
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
@@ -56,7 +57,7 @@ class BusinessMessages(Resource):
             limit = max_limit
 
         try:
-            messages = self.doc_db.find_doc('bid', bid, 'business_messages', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+            messages = self.doc_db.find_doc('bid', bid, 'user_messages', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
@@ -76,7 +77,7 @@ class BusinessMessages(Resource):
         return filter_general_document_db_record(messages)
 
     @oauth2.check_access_token
-    def post(self, uid, bid):
+    def post(self, target_uid):
         try:
             data = request.get_json(force=True, silent=False)
         except Exception as exc:
@@ -92,9 +93,9 @@ class BusinessMessages(Resource):
             return msg, 400
 
         try:
-            existing_business = self.doc_db.find_doc('bid', bid, 'business')
+            existing_user = self.graph_db.find_single_user('uid', uid)
         except DatabaseRecordNotFound as exc:
-            msg = {'message': 'The business you tried to post message to does not exist.'}
+            msg = {'message': 'The user you tried to post message to does not exist.'}
             logging.debug(msg)
             return msg, 404
 
@@ -106,7 +107,7 @@ class BusinessMessages(Resource):
         doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
 
         try:
-            self.doc_db.save(doc, 'business_messages')
+            self.doc_db.save(doc, 'user_messages')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}
             logging.error(msg)
@@ -115,14 +116,14 @@ class BusinessMessages(Resource):
         return None, 201
 
 
-class BusinessMessage(Resource):
+class UserMessage(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
-    def get(self, uid, bid, mid):
+    def get(self, uid, target_uid, mid):
         try:
-            message = self.doc_db.find_doc('mid', mid, 'business_messages', 1)
+            message = self.doc_db.find_doc('mid', mid, 'user_messages', 1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
