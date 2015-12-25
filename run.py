@@ -1,4 +1,7 @@
 from www.resources.business_faq import BusinessFAQ
+from www.resources.business_points import BusinessBalance
+from www.resources.enchilada_builtins import Business
+from www.resources.point_transactions import PointTransactions
 from www.resources.storage import Storage, StorageAccess
 from www.resources.user_followers import UserFollowers
 from www.resources.user_followings import UserFollowings
@@ -61,6 +64,9 @@ def initialize_app():
     api.add_resource(UserFollowings, '/users/<string:target_uid>/followings')
     api.add_resource(UserMessages, '/users/<string:target_uid>/messages')
     api.add_resource(UserMessage, '/users/<string:target_uid>/messages/<string:mid>')
+
+    api.add_resource(BusinessBalance, '/businesses/<string:bid>/balances/<string:uid>')
+    api.add_resource(PointTransactions, '/businesses/<string:bid>/point_transactions/<string:uid>')
 
 
 if __name__ == '__main__':

@@ -197,7 +197,7 @@ class BusinessReviews(Resource):
                 logging.fatal('There was not a rating_average in business document (There really should be one).')
                 reviews_average = 0
 
-            new_average = float(reviews_average * reviews_count + rating) / float(reviews_count + 1)
+            new_average = round(float(reviews_average * reviews_count + rating) / float(reviews_count + 1), 2)
             existing_business['reviews']['average_rating'] = new_average
             existing_business['reviews']['count'] = reviews_count + 1
 
