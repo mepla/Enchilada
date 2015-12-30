@@ -66,8 +66,10 @@ class StorageAccess(Resource):
     def get(self, file_id, uid=None):
         directory = configs['STORAGE']['STORAGE_PATH']
         directory = directory.rstrip('/') + '/' + uid
+        full_path = directory + '/' + file_id
+        logging.debug('User ({}) requested file: {}'.format(uid, full_path))
 
-        if not os.path.isfile(directory + '/' + file_id):
+        if not os.path.isfile(full_path):
             return make_response(jsonify({'reason': 'The file you requested does not exits.'}), 404)
         else:
             return send_from_directory(directory, file_id, as_attachment=True)
