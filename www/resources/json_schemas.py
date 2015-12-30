@@ -41,7 +41,7 @@ user_put_schema = {
         "udid": { "type": "string" },
         "latitude": { "type": "number" },
         "longitude": { "type": "number" },
-        "image": ""
+        "image": {"type": "string"}
     },
     "additionalProperties": True
 }
