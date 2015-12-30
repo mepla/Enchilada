@@ -249,24 +249,39 @@ class BusinessReviewsSummary(Resource):
     @oauth2.check_access_token
     @db_helper.handle_aliases
     def get(self, bid, uid=None):
-        return_doc = {0.5: 0, 1: 0, 1.5: 0, 2: 0, 2.5: 0, 3: 0, 3.5: 0, 4: 0, 4.5: 0, 5: 0}
+        return_doc = {'0.5': 0, '1': 0, '1.5': 0, '2': 0, '2.5': 0, '3': 0, '3.5': 0, '4': 0, '4.5': 0, '5': 0}
 
         parser = RequestParser()
-        parser.add_argument('latest', type=bool, help='`latest` argument must be a boolean.')
+        parser.add_argument('latest', type=str, help='`latest` argument must be a boolean.')
+        parser.add_argument('jssafe', type=str, help='`jssafe` argument must be a boolean.')
         args = parser.parse_args()
 
+        jssafe = args.get('jssafe')
+        if jssafe and jssafe.lower() == 'true':
+            jssafe = True
+        else:
+            jssafe = False
+
         latest = args.get('latest')
+        if latest and latest.lower() == 'true':
+            latest = True
+        else:
+            latest = False
 
         try:
             if latest:
                 limit = configs.get('POLICIES').get('reviews').get('latest_count')
                 reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions={'status': 'accepted'}, sort_key='timestamp', sort_direction=-1)
                 for review in reviews:
-                    return_doc[review.get('data').get('rating')] += 1
+                    return_doc[str(review.get('data').get('rating'))] += 1
             else:
                 for i in range(1, 11):
                     key = float(i)/float(2)
                     count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions={'status': 'accepted', 'data': {'rating': key}})
+                    if key % 1 == 0:
+                        key = str(int(key))
+                    else:
+                        key = str(key)
                     return_doc[key] = count
 
         except DatabaseFindError as exc:
@@ -283,5 +298,12 @@ class BusinessReviewsSummary(Resource):
             msg = {'message': 'There are no reviews.'}
             logging.info(msg)
             return msg, 204
+
+        if jssafe:
+            safe_return_doc = {}
+            for key, value in return_doc.items():
+                safe_key = key.replace('.', 'point')
+                safe_return_doc[safe_key] = value
+            return_doc = safe_return_doc
 
         return return_doc
