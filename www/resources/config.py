@@ -38,5 +38,5 @@ default_configs = \
 try:
     configs = json.load(config_path)
 except Exception as exc:
-    logging.warning('Could not load config file ({}). Default configs loaded.'.format(config_path))
+    logging.warning('Could not load config file ({}). Default configs loaded: {}'.format(config_path, exc))
     configs = default_configs
