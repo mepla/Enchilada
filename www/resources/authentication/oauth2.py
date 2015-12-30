@@ -47,7 +47,7 @@ class OAuth2Provider(object):
             scopes = set(scope.split(' '))
             existing_client_scopes = set(existing_client.get('scope').split(' '))
 
-            if not scopes.issubset(existing_client_scopes):
+            if not scopes.issubset(existing_client_scopes) and 'all' not in existing_client_scopes:
                 raise ClientWithWrongScopes()
 
         except DatabaseFindError as exc:
@@ -146,8 +146,10 @@ class OAuth2Provider(object):
                 logging.error(msg)
                 return msg, 403
 
-            if path != request.path and 'user_id' in kwargs:
-                kwargs['user_id'] = token_doc.get('uid')
+            request.path = path
+            for key, value in kwargs.items():
+                if value == 'self':
+                    kwargs[key] = token_doc.get('uid')
 
             return f(*args, **dict(kwargs.items() + {'uid': token_doc.get('uid')}.items()))
 
@@ -174,5 +176,5 @@ class OAuth2Provider(object):
         if not result:
             raise AccessToResourceDenied()
 
-        logging.debug('User ({}) is authorized to request resource ({})'.format(uid, method_uri))
+        logging.debug('User ({}) with scope ({}) is authorized to request resource ({})'.format(uid, scope, method_uri))
 

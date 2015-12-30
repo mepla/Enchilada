@@ -1,8 +1,6 @@
 import uuid
 import re
 import datetime
-import pytz
-
 
 __author__ = 'Mepla'
 
@@ -62,7 +60,6 @@ def filter_user_info(user_info):
         for single_doc in user_info:
             return_list.append(_filter_single_user_info(single_doc))
         return return_list
-
 
 def uuid_with_prefix(prefix):
     if not prefix:

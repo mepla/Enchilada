@@ -16,7 +16,7 @@ from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, review_schema
 from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp
 from www.resources.utilities.helpers import uuid_with_prefix
-from www import oauth2
+from www import oauth2, db_helper
 
 
 class PointTransactions(Resource):
@@ -24,6 +24,7 @@ class PointTransactions(Resource):
         self._accountant = Accountant()
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid, bid):
         parser = RequestParser()
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
@@ -44,7 +45,6 @@ class PointTransactions(Resource):
         max_limit = configs.get('DATABASES').get('mongodb').get('max_page_limit')
         if not limit or limit > max_limit:
             limit = max_limit
-
 
         try:
             result = self._accountant.get_point_transactions(uid, bid, limit=limit, before=before, after=after)

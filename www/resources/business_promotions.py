@@ -9,7 +9,7 @@ from flask import request
 
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, create_promotion_schema
-from www import oauth2
+from www import oauth2, db_helper
 from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
     DatabaseFindError
 from www.resources.utilities.helpers import filter_general_document_db_record
@@ -21,6 +21,8 @@ class BusinessPromotions(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, uid=None):
         try:
             promotions = self.doc_db.find_doc('bid', bid, 'business_promotions', limit=100)
@@ -40,6 +42,8 @@ class BusinessPromotions(Resource):
 
         return filter_general_document_db_record(promotions)
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, bid, uid=None):
         try:
             data = request.get_json(force=True, silent=False)
@@ -83,6 +87,8 @@ class BusinessPromotion(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, pid, uid=None):
         try:
             doc = self.doc_db.find_doc('pid', pid, 'business_promotions', 1)
@@ -96,6 +102,8 @@ class BusinessPromotion(Resource):
             logging.error(msg)
             return msg, 404
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def delete(self, bid, pid, uid=None):
         result = self.doc_db.delete('business_promotions', {'pid': pid})
 
@@ -112,6 +120,7 @@ class EligiblePromotions(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, uid=None):
         try:
             now_date = datetime.date.today().strftime('%Y-%m-%d')
@@ -154,6 +163,8 @@ class EligiblePromotions(Resource):
         else:
             return filter_general_document_db_record(eligible_promotions)
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def check_eligibility(self, promotion, uid):
         graph_db = DatabaseFactory().get_database_driver('graph')
         user = graph_db.find_single_user('uid', uid)
@@ -231,6 +242,8 @@ class PromotionApply(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, bid, pid, uid=None):
         result = BusinessPromotion().get(bid, pid, uid)
         if not isinstance(result, dict):

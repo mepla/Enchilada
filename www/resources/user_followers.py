@@ -1,3 +1,5 @@
+from flask import request
+
 __author__ = 'Mepla'
 
 import logging
@@ -7,15 +9,17 @@ from flask_restful import Resource
 from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
 from www.resources.databases.factories import DatabaseFactory
-from www import oauth2
+from www import oauth2, db_helper
 
 
 class UserFollowers(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    # @oauth2.check_access_token
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, target_uid, uid=None):
+        print('PATH: {} target_id: {}  uid: {}'.format(request.path, target_uid, uid))
         try:
             existing_user = self.graph_db.find_single_user('uid', target_uid)
         except DatabaseRecordNotFound as exc:
@@ -38,6 +42,7 @@ class UserFollowers(Resource):
         return response
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, target_uid, uid):
         try:
             relation = self.graph_db.follow(target_uid, uid)

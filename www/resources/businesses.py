@@ -1,4 +1,3 @@
-import json
 from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
     DocumentNotUpdated, DatabaseEmptyResult
 
@@ -12,7 +11,7 @@ from flask import request
 from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info
 
 import logging
-from www import oauth2
+from www import oauth2, db_helper
 from www.resources.utilities.helpers import uuid_with_prefix
 
 
@@ -21,7 +20,8 @@ class Businesses(Resource):
         super(Businesses, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
-    # @oauth2.check_access_token
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, uid=None):
         logging.debug('Client requested to create a business.')
 
@@ -54,6 +54,7 @@ class BusinessProfile(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid, bid):
         logging.debug('Client requested for business profile.')
         try:
@@ -79,7 +80,8 @@ class BusinessProfile(Resource):
 
         return existing_business
 
-    # @oauth2.check_access_token
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def put(self, bid, uid=None):
         logging.debug('Client requested to update a business.')
 
@@ -132,6 +134,7 @@ class BusinessCategory(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid):
         logging.debug('Client requested Business Categories.')
         resp = self.doc_db.find_doc(None, None, 'business_categories', 100)
@@ -144,6 +147,8 @@ class BusinessCategory(Resource):
             logging.error(msg)
             return msg, 204
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self):
         logging.debug('Client requested to create a business category.')
 
@@ -186,6 +191,7 @@ class BusinessAdmins(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, uid, bid):
         try:
             data = request.get_json(force=True, silent=False)
@@ -234,6 +240,7 @@ class BusinessAdmins(Resource):
         return filter_user_info(user), 200
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, uid):
         try:
             admins = self.graph_db.find_business_admins(bid)
@@ -254,6 +261,7 @@ class BusinessAdmin(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def delete(self, uid, bid, admin_uid):
         try:
             existing_user = self.graph_db.find_single_user('uid', admin_uid)

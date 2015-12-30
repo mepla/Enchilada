@@ -8,7 +8,7 @@ from flask_restful import Resource
 from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
-from www import oauth2
+from www import oauth2, db_helper
 from www.resources.utilities.helpers import Patch, filter_user_info
 
 
@@ -27,9 +27,10 @@ class User(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, user_id, uid):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
-
+        print('PATH: {} user_id: {}  uid: {}'.format(request.path, user_id, uid))
         try:
             existing_user = self.graph_db.find_single_user('uid', user_id)
             return filter_user_info(existing_user)
@@ -44,6 +45,7 @@ class User(Resource):
             return msg, 404
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def put(self, user_id, uid):
 
         try:
@@ -87,6 +89,7 @@ class User(Resource):
             return msg, 400
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def patch(self, user_id, uid):
 
         try:

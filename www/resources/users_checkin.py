@@ -3,7 +3,7 @@ import logging
 
 from flask_restful import Resource
 
-from www import oauth2
+from www import oauth2, db_helper
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound
 
@@ -15,6 +15,7 @@ class UsersCheckin(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, user_id, uid):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
 

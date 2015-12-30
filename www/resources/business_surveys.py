@@ -12,7 +12,7 @@ from flask import request
 
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, survey_result_schema
-from www import oauth2
+from www import oauth2, db_helper
 from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseSaveError, \
     DatabaseFindError
 from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp
@@ -25,6 +25,7 @@ class BusinessSurveyResults(Resource):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, uid, bid):
         try:
             data = request.get_json(force=True, silent=False)
@@ -65,6 +66,8 @@ class BusinessSurveyResults(Resource):
             logging.error(msg)
             return msg, 500
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid):
         parser = RequestParser()
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
@@ -120,6 +123,8 @@ class BusinessSurveyResult(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, survey_id):
         try:
             doc = self.doc_db.find_doc('srid', survey_id, 'business_survey_results', 1)
@@ -133,6 +138,8 @@ class BusinessSurveyResult(Resource):
             logging.error(msg)
             return msg, 204
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def delete(self, bid, survey_id, uid=None):
         result = self.doc_db.delete('business_survey_results', {'srid': survey_id})
 
@@ -148,6 +155,8 @@ class BusinessSurveyTemplates(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid):
         try:
             result = self.doc_db.find_doc('bid', bid, 'business_survey_templates', 100)
@@ -178,6 +187,8 @@ class BusinessSurveyTemplate(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, bid, survey_id):
         try:
             if survey_id == 'active_survey':
@@ -194,9 +205,13 @@ class BusinessSurveyTemplate(Resource):
             logging.error(msg)
             return msg, 404
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def put(self):
         pass
 
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
     def delete(self, bid, survey_id, uid=None):
         result = self.doc_db.delete('business_survey_templates', {'stid': survey_id})
 

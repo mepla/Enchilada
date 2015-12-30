@@ -15,7 +15,7 @@ from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
 from www.resources.utilities.helpers import filter_general_document_db_record
-from www import oauth2
+from www import oauth2, db_helper
 
 
 class BusinessMessages(Resource):
@@ -23,6 +23,7 @@ class BusinessMessages(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid, bid):
         parser = RequestParser()
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
@@ -76,6 +77,7 @@ class BusinessMessages(Resource):
         return filter_general_document_db_record(messages)
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def post(self, uid, bid):
         try:
             data = request.get_json(force=True, silent=False)
@@ -120,6 +122,7 @@ class BusinessMessage(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid, bid, mid):
         try:
             message = self.doc_db.find_doc('mid', mid, 'business_messages', 1)

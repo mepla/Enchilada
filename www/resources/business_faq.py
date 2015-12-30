@@ -15,7 +15,7 @@ from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
 from www.resources.utilities.helpers import filter_general_document_db_record
-from www import oauth2
+from www import oauth2, db_helper
 
 
 class BusinessFAQ(Resource):
@@ -23,6 +23,7 @@ class BusinessFAQ(Resource):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
+    @db_helper.handle_aliases
     def get(self, uid, bid):
         try:
             faq = self.doc_db.find_doc('bid', bid, 'business_faq', limit=1)
