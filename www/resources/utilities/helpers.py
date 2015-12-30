@@ -61,6 +61,7 @@ def filter_user_info(user_info):
             return_list.append(_filter_single_user_info(single_doc))
         return return_list
 
+
 def uuid_with_prefix(prefix):
     if not prefix:
         prefix = ''
@@ -85,6 +86,18 @@ def utc_now_timestamp():
 
 def timestamp_from_date(date):
     return (date - datetime.datetime(1970, 1, 1, 0, 0, 0, 0)).total_seconds()
+
+
+def convert_str_query_string_to_bool(query_str, default=False):
+    if not query_str:
+        return default
+
+    query_str = str(query_str)
+    query_str_low = query_str.lower()
+    if query_str_low == 'true' or query_str_low == '1':
+        return True
+    else:
+        return False
 
 
 class Patch(object):

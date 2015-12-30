@@ -14,7 +14,8 @@ from www.resources.databases.database_drivers import DatabaseSaveError, Database
     DatabaseEmptyResult
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, review_schema
-from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp, filter_user_info
+from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp, filter_user_info, \
+    convert_str_query_string_to_bool
 from www.resources.utilities.helpers import uuid_with_prefix
 from www import oauth2, db_helper
 
@@ -88,7 +89,7 @@ class BusinessReviews(Resource):
         if rating:
             conditions['data'] = {'rating': rating}
 
-        return_count = args.get('return_count')
+        return_count = convert_str_query_string_to_bool(args.get('return_count'))
 
         # TODO: They syntax of querying should not be exposed to this layer.
         if before:
@@ -100,7 +101,7 @@ class BusinessReviews(Resource):
             else:
                 conditions['timestamp'] = {'$gt': after}
 
-        return_friends = args.get('return_friends')
+        return_friends = convert_str_query_string_to_bool(args.get('return_friends'))
         if return_friends:
             try:
                 result = self.graph_db.find_user_followings(uid, users=True, businesses=False)
@@ -117,7 +118,7 @@ class BusinessReviews(Resource):
         if not limit or limit > max_limit:
             limit = max_limit
 
-        include_user_info = args.get('include_user_info')
+        include_user_info = convert_str_query_string_to_bool(args.get('include_user_info'))
         try:
             if return_count:
                 count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions)
@@ -256,17 +257,8 @@ class BusinessReviewsSummary(Resource):
         parser.add_argument('jssafe', type=str, help='`jssafe` argument must be a boolean.')
         args = parser.parse_args()
 
-        jssafe = args.get('jssafe')
-        if jssafe and jssafe.lower() == 'true':
-            jssafe = True
-        else:
-            jssafe = False
-
-        latest = args.get('latest')
-        if latest and latest.lower() == 'true':
-            latest = True
-        else:
-            latest = False
+        jssafe = convert_str_query_string_to_bool(args.get('jssafe'))
+        latest = convert_str_query_string_to_bool(args.get('latest'))
 
         try:
             if latest:
