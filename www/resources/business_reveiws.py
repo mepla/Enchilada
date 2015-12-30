@@ -14,7 +14,7 @@ from www.resources.databases.database_drivers import DatabaseSaveError, Database
     DatabaseEmptyResult
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, review_schema
-from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp
+from www.resources.utilities.helpers import filter_general_document_db_record, utc_now_timestamp, filter_user_info
 from www.resources.utilities.helpers import uuid_with_prefix
 from www import oauth2, db_helper
 
@@ -129,7 +129,7 @@ class BusinessReviews(Resource):
                         review_uid = review.get('uid')
                         try:
                             existing_user = self.graph_db.find_single_user('uid', review_uid)
-                            review['user'] = existing_user
+                            review['user'] = filter_user_info(existing_user)
                         except Exception as exc:
                             logging.error('Could not fetch user info in Business Reviews: {}'.format(exc))
 
