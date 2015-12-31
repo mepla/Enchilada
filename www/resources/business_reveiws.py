@@ -265,7 +265,12 @@ class BusinessReviewsSummary(Resource):
                 limit = configs.get('POLICIES').get('reviews').get('latest_count')
                 reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions={'status': 'accepted'}, sort_key='timestamp', sort_direction=-1)
                 for review in reviews:
-                    return_doc[str(review.get('data').get('rating'))] += 1
+                    rating = review.get('data').get('rating')
+                    if rating % 1 == 0:
+                        rating = str(int(rating))
+                    else:
+                        rating = str(rating)
+                    return_doc[rating] += 1
             else:
                 for i in range(1, 11):
                     key = float(i)/float(2)
