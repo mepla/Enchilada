@@ -79,4 +79,15 @@ class SignUp(Resource):
         hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
         body['password'] = hashed_password
 
-        return filter_user_info(self.graph_db.create_new_user(**body))
+        created_user = self.graph_db.create_new_user(**body)
+        uid = created_user.get('uid')
+
+        try:
+            self.graph_db.follow(uid, uid)
+            self.graph_db.follow('echomybiz', uid)
+        except DatabaseRecordNotFound:
+            msg = {'message': 'The user you tried to follow does not exist.'}
+            logging.debug(msg)
+            return msg, 400
+
+        return filter_user_info(created_user)
