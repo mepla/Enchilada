@@ -299,7 +299,7 @@ class BusinessReviewsSummary(Resource):
         if jssafe:
             safe_return_doc = {}
             for key, value in return_doc.items():
-                safe_key = key.replace('.', 'point')
+                safe_key = 'f' + key.replace('.', 'p')
                 safe_return_doc[safe_key] = value
             return_doc = safe_return_doc
 
