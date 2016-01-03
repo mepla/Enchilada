@@ -125,7 +125,7 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseFindError()
 
-    def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1):
+    def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1, force_array_return=False):
         print key, value, doc_type, conditions
         try:
             find_predicate = {}
@@ -141,7 +141,11 @@ class MongoDatabase(DocumentDatabaseBase):
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
                 if not doc:
                     raise DatabaseRecordNotFound()
-                return filter_general_document_db_record(doc, doc_type=doc_type)
+                return_value = filter_general_document_db_record(doc, doc_type=doc_type)
+                if force_array_return is True:
+                    return [return_value]
+                else:
+                    return return_value
             else:
                 if sort_key:
                     directon = pymongo.DESCENDING if sort_direction == -1 else pymongo.ASCENDING

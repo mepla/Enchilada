@@ -30,6 +30,8 @@ class UserTimeline(Resource):
 
         args = parser.parse_args()
 
+        conditions = {}
+
         before = args.get('before')
         after = args.get('after')
 
@@ -38,23 +40,33 @@ class UserTimeline(Resource):
             logging.debug(msg)
             return msg, 400
 
+        if before:
+            conditions['timestamp'] = {'$lt': before}
+
+        if after:
+            if conditions.get('timestamp'):
+                conditions['timestamp']['$gt'] = after
+            else:
+                conditions['timestamp'] = {'$gt': after}
+
         limit = args.get('limit')
         max_limit = configs.get('DATABASES').get('mongodb').get('max_page_limit')
         if not limit or limit > max_limit:
             limit = max_limit
 
-        each_limit = limit/2
-
         try:
             followings_list = self.graph_db.find_user_followings(target_uid, users=True, businesses=False)
             followings_list_uids = [x.get('user').get('uid') for x in followings_list]
+            conditions['uid'] = {'$in': followings_list_uids}
         except DatabaseEmptyResult:
             msg = {'message': 'There is no followings for this user.'}
             logging.debug(msg)
             return msg, 204
 
         try:
-            friends_reviews = self.doc_db.find_doc(None, None, 'business_reviews', limit=each_limit, conditions={'uid': {'$in': followings_list_uids}}, sort_key='timestamp', sort_direction=-1)
+            friends_reviews = self.doc_db.find_doc(None, None, 'business_reviews', limit=limit,
+                                                   conditions=conditions,
+                                                   sort_key='timestamp', sort_direction=-1, force_array_return=True)
 
         except (DatabaseRecordNotFound, DatabaseEmptyResult) as exc:
             friends_reviews = []
@@ -63,7 +75,9 @@ class UserTimeline(Resource):
             return {'message': 'internal_server_error'}, 500
 
         try:
-            friends_checkins = self.doc_db.find_doc(None, None, 'checkins', limit=each_limit, conditions={'uid': {'$in': followings_list_uids}}, sort_key='timestamp', sort_direction=-1)
+            friends_checkins = self.doc_db.find_doc(None, None, 'checkins', limit=limit,
+                                                    conditions=conditions,
+                                                    sort_key='timestamp', sort_direction=-1, force_array_return=True)
 
         except (DatabaseRecordNotFound, DatabaseEmptyResult) as exc:
             friends_checkins = []
@@ -73,4 +87,5 @@ class UserTimeline(Resource):
 
         response_list = friends_reviews + friends_checkins
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
+        response_list = response_list[0:limit]
         return filter_general_document_db_record(response_list)
