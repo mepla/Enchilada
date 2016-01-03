@@ -141,7 +141,7 @@ class MongoDatabase(DocumentDatabaseBase):
                 doc = self._mongo_db[doc_type].find_one(find_predicate)
                 if not doc:
                     raise DatabaseRecordNotFound()
-                return filter_general_document_db_record(doc)
+                return filter_general_document_db_record(doc, doc_type=doc_type)
             else:
                 if sort_key:
                     directon = pymongo.DESCENDING if sort_direction == -1 else pymongo.ASCENDING
@@ -150,7 +150,7 @@ class MongoDatabase(DocumentDatabaseBase):
                     cursor = self._mongo_db[doc_type].find(find_predicate, limit=limit)
                 return_list = []
                 for doc in cursor:
-                    return_list.append(filter_general_document_db_record(doc))
+                    return_list.append(filter_general_document_db_record(doc, doc_type=doc_type))
                 if len(return_list) < 1:
                     raise DatabaseEmptyResult()
                 return return_list
@@ -435,19 +435,33 @@ class Neo4jDatabase(GraphDatabaseBase):
         existing_relation = self._graph.match_one(user, "CHECK_IN", business)
         if existing_relation:
             existing_relation.properties['count'] += 1
-            existing_relation.properties['timestamps'] = str(utc_now_timestamp()) + ' ' + existing_relation.properties['timestamps']
+            existing_relation.properties['last_checkin'] = utc_now_timestamp()
             existing_relation.push()
             return existing_relation.properties
         else:
             new_id = uuid_with_prefix('rid')
-            timestamps = str(utc_now_timestamp())
-            new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, timestamps=timestamps)
+            first_checkin_date = utc_now_timestamp()
+            last_checkin_date = first_checkin_date
+            new_relation = Relationship(user, 'CHECK_IN', business, rid=new_id, count=1, first_checkin=first_checkin_date, last_checkin=last_checkin_date)
             self._graph.create(new_relation)
             return new_relation.properties
 
     def find_business_admins(self, bid):
         try:
             result = self._graph.cypher.execute('match (n:user) where n.responsible_for =~ \'^.*{}.*$\' return n'.format(bid))
+        except Exception as exc:
+            logging.error(exc)
+            raise DatabaseFindError
+
+        if len(result.records) < 1:
+            raise DatabaseEmptyResult
+
+        else:
+            return [admin.n.properties for admin in result.records]
+
+    def find_all_checkins_of_a_list(self, list_of_uids):
+        try:
+            result = self._graph.cypher.execute('match (n:user) -[r:]- where n.uid in {} return n order by n.email DESC limit 2'.format(list_of_uids))
         except Exception as exc:
             logging.error(exc)
             raise DatabaseFindError
