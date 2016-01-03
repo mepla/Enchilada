@@ -1,7 +1,8 @@
 from operator import itemgetter
 from flask_restful.reqparse import RequestParser
 from www.resources.config import configs
-from www.resources.utilities.helpers import filter_general_document_db_record
+from www.resources.utilities.helpers import filter_general_document_db_record, convert_str_query_string_to_bool, \
+    filter_user_info
 
 __author__ = 'Mepla'
 
@@ -27,10 +28,13 @@ class UserTimeline(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
 
         args = parser.parse_args()
 
         conditions = {}
+
+        include_user_info = convert_str_query_string_to_bool(args.get('include_user_info'))
 
         before = args.get('before')
         after = args.get('after')
@@ -56,8 +60,13 @@ class UserTimeline(Resource):
 
         try:
             followings_list = self.graph_db.find_user_followings(target_uid, users=True, businesses=False)
-            followings_list_uids = [x.get('user').get('uid') for x in followings_list]
-            conditions['uid'] = {'$in': followings_list_uids}
+
+            all_followings_dict = {}
+            for user in followings_list:
+                all_followings_dict[(user.get('user').get('uid'))] = filter_user_info(user.get('user'))
+
+            conditions['uid'] = {'$in': all_followings_dict.keys()}
+
         except DatabaseEmptyResult:
             msg = {'message': 'There is no followings for this user.'}
             logging.debug(msg)
@@ -88,4 +97,9 @@ class UserTimeline(Resource):
         response_list = friends_reviews + friends_checkins
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         response_list = response_list[0:limit]
+
+        if include_user_info:
+            for item in response_list:
+                item['user'] = all_followings_dict[item.get('uid')]
+
         return filter_general_document_db_record(response_list)

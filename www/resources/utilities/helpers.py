@@ -44,24 +44,30 @@ def filter_general_document_db_record(doc, doc_type=None):
         return return_list
 
 
-def _filter_single_user_info(doc):
+def _filter_single_user_info(doc, include_doc_type=False):
     user_info_copy = dict(doc)
     user_info_copy = filter_general_document_db_record(user_info_copy)
+    assert isinstance(user_info_copy, dict)
+
     if 'password' in user_info_copy:
         del(user_info_copy['password'])
+
     if 'udid' in user_info_copy:
         del(user_info_copy['udid'])
-    user_info_copy['type'] = 'user'
+
+    if include_doc_type:
+        user_info_copy['type'] = 'user'
+
     return user_info_copy
 
 
-def filter_user_info(user_info):
+def filter_user_info(user_info, include_doc_type=False):
     if isinstance(user_info, dict):
-        return _filter_single_user_info(user_info)
+        return _filter_single_user_info(user_info, include_doc_type)
     if isinstance(user_info, list):
         return_list = []
         for single_doc in user_info:
-            return_list.append(_filter_single_user_info(single_doc))
+            return_list.append(_filter_single_user_info(single_doc, include_doc_type))
         return return_list
 
 
