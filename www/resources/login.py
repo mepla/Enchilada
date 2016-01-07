@@ -24,6 +24,8 @@ class Login(Resource):
         arg_parser = RequestParser()
         arg_parser.add_argument('grant_type', type=str, help='Your request must contain a \'grant_type\' query string. Please check the documentation.', required=True)
         arg_parser.add_argument('refresh_token', type=str, required=False)
+        # TODO: This should be deleted and scope should only be read from headers.
+        arg_parser.add_argument('scope', type=str, required=False)
         args = arg_parser.parse_args()
         try:
             authorization = request.headers.get('Authorization')
@@ -35,11 +37,15 @@ class Login(Resource):
             return msg, 401
 
         if 'scope' not in request.headers:
-            msg = {'message': 'Your HTTP headers must have a \'scope\' parameter which is a space separated list of needed scopes.'}
-            logging.error(msg)
-            return msg, 401
-
-        scope = request.headers.get('scope')
+            scope = args.get('scope')
+            if scope is not None:
+                pass
+            else:
+                msg = {'message': 'Your HTTP headers must have a \'scope\' parameter which is a space separated list of needed scopes.'}
+                logging.error(msg)
+                return msg, 401
+        else:
+            scope = request.headers.get('scope')
 
         try:
             oauth2.client_id_check(client_id, client_secret, scope)
