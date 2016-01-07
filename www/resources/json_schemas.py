@@ -50,7 +50,9 @@ login_schema = {
     "type": "object",
     "properties":{
         "username":  { "type": "string" },
-        "password": { "type": "string" }
+        "password": { "type": "string" },
+        "grant_type":  { "type": "string" },
+        "scope":  { "type": "string" }
     },
     "additionalProperties": False,
     "required": [ "username", "password"]
@@ -178,7 +180,16 @@ add_admin_for_business_schema =\
         "required": [ "uid"]
     }
 
-
+user_follow_req_accept_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "accept":  {"type": "boolean"},
+            "frid":  {"type": "string"}
+        },
+        "additionalProperties": False,
+        "required": ["accept", "frid"]
+    }
 create_promotion_schema =\
     {
         "type": "object",
