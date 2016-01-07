@@ -302,7 +302,27 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
 
-    def follow(self, business_or_user_id, uid):
+    def accept_or_deny_follow_request(self, frid, accept=True):
+        try:
+            cypher_stat = "match ()-[r:FOLLOW_REQ {frid: '%s'}] -> () return r limit 1" % frid
+            result = self._graph.cypher.execute(cypher_stat)
+            friend_req = result.one
+            if not friend_req:
+                raise Exception
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        follower = friend_req.start_node
+        followed = friend_req.end_node
+
+        if accept is True:
+            timestamp = str(utc_now_timestamp())
+            new_id = uuid_with_prefix('fid')
+            new_relation = Relationship(follower, "FOLLOWS", followed, fid=new_id, timestamp=timestamp)
+            self._graph.create(new_relation)
+        self._graph.delete(friend_req)
+
+    def follow(self, uid, business_or_user_id, request=False):
         try:
             if business_or_user_id.find('uid') == 0:
                 end_node = self._graph.find_one('user', 'uid', business_or_user_id)
@@ -315,13 +335,20 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         user = self._graph.find_one('user', 'uid', uid)
 
-        existing_relation = self._graph.match_one(user, "FOLLOWS", end_node)
+        rel_type = "FOLLOW_REQ" if request else "FOLLOWS"
+
+        existing_relation = self._graph.match_one(user, rel_type, end_node)
         if existing_relation:
             return existing_relation.properties
         else:
-            new_id = uuid_with_prefix('fid')
             timestamp = str(utc_now_timestamp())
-            new_relation = Relationship(user, 'FOLLOWS', end_node, fid=new_id, timestamp=timestamp)
+            if request is True:
+                new_id = uuid_with_prefix('frid')
+                new_relation = Relationship(user, rel_type, end_node, frid=new_id, timestamp=timestamp)
+            else:
+                new_id = uuid_with_prefix('fid')
+                new_relation = Relationship(user, rel_type, end_node, fid=new_id, timestamp=timestamp)
+
             self._graph.create(new_relation)
             return new_relation.properties
 
@@ -349,7 +376,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
 
-    def find_user_followers(self, uid):
+    def find_user_followers(self, uid, request=False):
         try:
             user = self._graph.find_one('user', 'uid', uid)
             if not user:
@@ -358,17 +385,19 @@ class Neo4jDatabase(GraphDatabaseBase):
             raise DatabaseRecordNotFound()
 
         try:
-            results = self._graph.match(None, "FOLLOWS", user)
+            rel_type = "FOLLOW_REQ" if request else "FOLLOWS"
+            results = self._graph.match(None, rel_type, user)
             if not results:
                 raise Exception()
         except Exception as exc:
             raise DatabaseEmptyResult
 
         response_list = list()
+        id_prefix = "frid" if request else "fid"
         for res in results:
             user = res.start_node
             timestamp = res.properties['timestamp']
-            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
+            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties), id_prefix: res.properties.get(id_prefix)})
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
