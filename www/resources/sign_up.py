@@ -30,6 +30,7 @@ class SignUp(Resource):
         logging.info('Client requested for sign up.')
 
         try:
+            logging.debug('data: {}\nheaders: {}'.format(request.data, request.headers))
             body = request.get_json(force=True)
         except Exception as exc:
             msg = {'msg': 'Your JSON is invalid.',
