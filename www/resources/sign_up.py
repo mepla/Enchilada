@@ -23,6 +23,7 @@ class SignUp(Resource):
     def __init__(self):
         super(SignUp, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.notification_manager = NotificationManager()
 
     def post(self):
         logging.info('Client requested for sign up.')
@@ -30,7 +31,8 @@ class SignUp(Resource):
         try:
             body = request.get_json(force=True)
         except Exception as exc:
-            msg = {'msg': 'Your JSON is invalid.'}
+            msg = {'msg': 'Your JSON is invalid.',
+                   'error': 'bad_input'}
             logging.error(msg)
             return msg, 400
 
@@ -41,13 +43,15 @@ class SignUp(Resource):
             validate_json(body, signup_schema)
             logging.debug('Client requested for sign up with payload: \n{}'.format(pprint.pformat(body)))
         except JsonValidationException as exc:
-            msg = {'message': exc.message}
+            msg = {'message': exc.message,
+                   'error': 'wrong_input'}
             logging.debug(msg)
             return msg, 400
 
         email = body.get('email')
         if not utils.check_email_format(email):
-            msg = {'message': 'The email address you entered is invalid.'}
+            msg = {'message': 'The email address you entered is invalid.',
+                   'error': 'invalid_email'}
             logging.error(msg)
             return msg, 400
 
@@ -57,7 +61,8 @@ class SignUp(Resource):
             user_exists = False
 
         if user_exists:
-            msg = {'message': 'A user is already registered with this email address: {}'.format(email)}
+            msg = {'message': 'A user is already registered with this email address: {}'.format(email),
+                   'error': 'already_registered'}
             logging.debug(msg)
             return msg, 400
 
@@ -65,8 +70,9 @@ class SignUp(Resource):
         more_than_max_udid = self.graph_db.users_with_udid_count(udid) >= number_of_allowed_users_with_udid
 
         if more_than_max_udid:
-            msg = {'message': 'More than {} users are signed up with this udid: {}'
-                .format(number_of_allowed_users_with_udid, udid)}
+            msg = {'message': 'More than {} users are signed up with this udid: {}'.
+                format(number_of_allowed_users_with_udid, udid),
+                   'error': 'excessive_udid'}
 
             logging.debug(msg)
             return msg, 400
@@ -86,8 +92,9 @@ class SignUp(Resource):
             self.graph_db.follow(uid, uid)
             self.graph_db.follow('echomybiz', uid)
         except DatabaseRecordNotFound:
-            msg = {'message': 'The user you tried to follow does not exist.'}
+            msg = {'message': 'The user you tried to follow does not exist.',
+                   'error': 'internal_server_error'}
             logging.debug(msg)
-            return msg, 400
+            return msg, 500
 
         return filter_user_info(created_user)
