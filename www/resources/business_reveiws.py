@@ -205,7 +205,7 @@ class BusinessReviews(Resource):
             existing_business['reviews']['count'] = reviews_count + 1
 
         try:
-            self.doc_db.update(existing_business, 'bid', bid, 'business')
+            self.doc_db.update('bid', bid, 'business', existing_business)
             self.doc_db.save(doc, 'business_reviews')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}

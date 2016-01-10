@@ -80,15 +80,24 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error saving doc to database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
 
-    def update(self, doc, key, value, doc_type, multiple=False):
+    def update(self, key, value, doc_type, updated_fields, conditions=None, multiple=False):
         if not doc_type:
             raise DatabaseSaveError('No doc_type provided.')
 
         try:
+            find_predicate = {}
+            if conditions:
+                find_predicate = conditions
+
+            if key and value:
+                find_predicate[key] = value
+
+            find_predicate = self._convert_conditions_to_mongo_style(find_predicate)
+
             if multiple:
-                objs = self._mongo_db[doc_type].replace_many({key: value}, doc, ordered=False)
+                objs = self._mongo_db[doc_type].update_many(find_predicate, updated_fields)
             else:
-                obj = self._mongo_db[doc_type].replace_one({key: value}, doc)
+                obj = self._mongo_db[doc_type].update_one(find_predicate, updated_fields)
         except Exception as exc:
             logging.error('Error updating doc: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
