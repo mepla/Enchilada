@@ -13,34 +13,62 @@ class NotificationManager(object):
         self.notif_settings = {
             'follow_request': {
                 'schema': {
-
+                    "type": "object",
+                    "properties": {
+                        "follower":  {"type": "string"},
+                        "followee":  {"type": "string"},
+                        "frid":  {"type": "string"},
+                        "follower_data":  {"type": "object"}
+                    },
+                    "additionalProperties": True,
+                    "required": ["follower", "followee", "frid", "follower_data"]
                 },
                 'method': self.create_follow_request_notification
             },
+
             'follow_accept': {
                 'schema': {
 
                 },
                 'method': self.create_follow_request_notification
             },
+
             'sign_up': {
                 'schema': {
-
+                    "type": "object",
+                    "properties": {
+                        "uid":  {"type": "string"},
+                        "user":  {
+                            "type": "string",
+                            'properties': {
+                                "name":  {"type": "string"},
+                                "lastname":  {"type": "string"},
+                                "gender":  {"type": "string"}
+                            },
+                            "additionalProperties": True,
+                            "required": ["name"]
+                        }
+                    },
+                    "additionalProperties": True,
+                    "required": ["follower", "followee", "frid", "follower_data"]
                 },
                 'method': self.create_sign_up_notification
             },
+
             'checkin_survey': {
                 'schema': {
 
                 },
                 'method': self.create_follow_request_notification
             },
+
             'earn_points': {
                 'schema': {
 
                 },
                 'method': self.create_follow_request_notification
             },
+
             'redeem_points': {
 
             }
