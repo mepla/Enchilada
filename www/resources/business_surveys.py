@@ -101,7 +101,8 @@ class BusinessSurveyResults(Resource):
             limit = max_limit
 
         try:
-            surveys = self.doc_db.find_doc('bid', bid, 'business_survey_results', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+            surveys = self.doc_db.find_doc('bid', bid, 'business_survey_results', limit=limit, conditions=conditions,
+                                           sort_key='timestamp', sort_direction=-1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}

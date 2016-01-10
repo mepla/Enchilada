@@ -1,5 +1,6 @@
 from flask import request
 from www.resources.json_schemas import validate_json, user_follow_req_accept_schema, JsonValidationException
+from www.resources.notification_manager import NotificationManager
 
 __author__ = 'Mepla'
 
@@ -46,6 +47,7 @@ class UserFollowers(Resource):
 class UserFollowRequests(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.notification_manager = NotificationManager()
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -86,11 +88,18 @@ class UserFollowRequests(Resource):
             return msg, 404
 
         try:
-            relation = self.graph_db.follow(uid, target_uid, request=True)
+            follower, relation, followee = self.graph_db.follow(uid, target_uid, request=True, return_path_data=True)
         except DatabaseRecordNotFound:
             msg = {'message': 'The user you tried to follow does not exist.'}
             logging.debug(msg)
             return msg, 400
+
+        try:
+            self.notification_manager.add_notification('follow_request', {'follower': uid, 'followee': target_uid,
+                                                                          'frid': relation.get('frid'),
+                                                                          'follower_data': follower})
+        except:
+            pass
 
         return relation
 

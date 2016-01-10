@@ -1,3 +1,4 @@
+from www.resources.notification_manager import NotificationManager
 
 __author__ = 'Mepla'
 
@@ -96,5 +97,7 @@ class SignUp(Resource):
                    'error': 'internal_server_error'}
             logging.debug(msg)
             return msg, 500
+
+        self.notification_manager.add_notification('sign_up', {'uid': uid, 'user': created_user})
 
         return filter_user_info(created_user)

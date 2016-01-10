@@ -239,6 +239,16 @@ create_promotion_schema =\
         "required": ["title", "description", "conditions", "life_span"]
     }
 
+user_notification_seen_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "seen":  {"type": "boolean"}
+        },
+        "additionalProperties": True,
+        "required": ["seen"]
+    }
+
 
 def validate_json(json_data, schema):
     try:

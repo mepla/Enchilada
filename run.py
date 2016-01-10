@@ -6,6 +6,7 @@ from www.resources.storage import Storage, StorageAccess
 from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept
 from www.resources.user_followings import UserFollowings
 from www.resources.user_messages import UserMessages, UserMessage
+from www.resources.user_notifications import UserNotifications, UserNotificationsSeen
 from www.resources.user_timeline import UserTimeline
 
 __author__ = 'Mepla'
@@ -67,9 +68,9 @@ def initialize_app():
     api.add_resource(UserFollowings, '/users/<string:target_uid>/followings')
     api.add_resource(UserMessages, '/users/<string:target_uid>/messages')
     api.add_resource(UserMessage, '/users/<string:target_uid>/messages/<string:mid>')
-
     api.add_resource(UserTimeline, '/users/<string:target_uid>/timeline')
-
+    api.add_resource(UserNotifications, '/users/<string:target_uid>/notifications')
+    api.add_resource(UserNotificationsSeen, '/users/<string:target_uid>/notifications/mark_as_seen')
     api.add_resource(BusinessBalance, '/businesses/<string:bid>/balances/<string:uid>')
     api.add_resource(PointTransactions, '/businesses/<string:bid>/point_transactions/<string:uid>')
 

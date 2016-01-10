@@ -1,3 +1,4 @@
+from www.resources.notification_manager import NotificationManager
 from www.resources.utilities.helpers import utc_now_timestamp, uuid_with_prefix, filter_general_document_db_record
 
 __author__ = 'Mepla'
@@ -17,6 +18,7 @@ class CheckIn(Resource):
         super(CheckIn, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.notification_manager = NotificationManager()
 
     @oauth2.check_access_token
     @db_helper.handle_aliases

@@ -1,4 +1,6 @@
 from www.resources.config import configs
+from www.resources.json_schemas import validate_json, JsonValidationException, \
+    user_notification_seen_schema
 
 __author__ = 'Mepla'
 
@@ -13,12 +15,11 @@ from www.resources.databases.database_drivers import DatabaseSaveError, Database
     DatabaseEmptyResult
 from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
-from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
 from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2, db_helper
 
 
-class UserMessages(Resource):
+class UserNotifications(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
         self.graph_db = DatabaseFactory().get_database_driver('graph')
@@ -58,7 +59,7 @@ class UserMessages(Resource):
             limit = max_limit
 
         try:
-            messages = self.doc_db.find_doc('uid', target_uid, 'user_messages', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
+            messages = self.doc_db.find_doc('uid', uid, 'user_notifications', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
 
         except DatabaseFindError as exc:
             msg = {'message': 'Could not retrieve requested information'}
@@ -77,70 +78,13 @@ class UserMessages(Resource):
 
         return filter_general_document_db_record(messages)
 
-    @oauth2.check_access_token
-    @db_helper.handle_aliases
-    def post(self, target_uid):
-        try:
-            data = request.get_json(force=True, silent=False)
-        except Exception as exc:
-            msg = {'msg': 'Your JSON is invalid.'}
-            logging.error(msg)
-            return msg, 400
 
-        try:
-            validate_json(data, message_schema)
-        except JsonValidationException as exc:
-            msg = {'message': exc.message}
-            logging.error(msg)
-            return msg, 400
-
-        try:
-            existing_user = self.graph_db.find_single_user('uid', uid)
-        except DatabaseRecordNotFound as exc:
-            msg = {'message': 'The user you tried to post message to does not exist.'}
-            logging.debug(msg)
-            return msg, 404
-
-        except DatabaseFindError as exc:
-            msg = {'message': 'Could not retrieve requested information'}
-            logging.error(msg)
-            return msg, 500
-
-        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'mid': uuid_with_prefix('mid'), 'seen': False}
-
-        try:
-            self.doc_db.save(doc, 'user_messages')
-        except DatabaseSaveError as exc:
-            msg = {'message': 'Your changes may have been done partially or not at all.'}
-            logging.error(msg)
-            return msg, 500
-
-        return None, 201
-
-
-class UserMessage(Resource):
+class UserNotificationsSeen(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
-    def get(self, uid, target_uid, mid):
-        try:
-            message = self.doc_db.find_doc('mid', mid, 'user_messages', 1)
-
-        except DatabaseFindError as exc:
-            msg = {'message': 'Could not retrieve requested information'}
-            logging.error(msg)
-            return msg, 500
-
-        except DatabaseRecordNotFound as exc:
-            msg = {'message': 'The information you requested is not found'}
-            logging.info(msg)
-            return msg, 404
-
-        except DatabaseEmptyResult as exc:
-            msg = {'message': 'There are no messages.'}
-            logging.info(msg)
-            return msg, 204
-
-        return filter_general_document_db_record(message)
+    def post(self, uid):
+        self.doc_db.update()

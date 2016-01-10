@@ -322,7 +322,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             self._graph.create(new_relation)
         self._graph.delete(friend_req)
 
-    def follow(self, uid, business_or_user_id, request=False):
+    def follow(self, uid, business_or_user_id, request=False, return_path_data=False):
         try:
             if business_or_user_id.find('uid') == 0:
                 end_node = self._graph.find_one('user', 'uid', business_or_user_id)
@@ -350,7 +350,10 @@ class Neo4jDatabase(GraphDatabaseBase):
                 new_relation = Relationship(user, rel_type, end_node, fid=new_id, timestamp=timestamp)
 
             self._graph.create(new_relation)
-            return new_relation.properties
+            if return_path_data:
+                return filter_user_info(user.properties), new_relation.properties, filter_user_info(end_node.properties)
+            else:
+                return new_relation.properties
 
     def find_business_followers(self, bid):
         try:
