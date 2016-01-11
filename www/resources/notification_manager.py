@@ -39,7 +39,7 @@ class NotificationManager(object):
                     "properties": {
                         "uid":  {"type": "string"},
                         "user":  {
-                            "type": "string",
+                            "type": "object",
                             'properties': {
                                 "name":  {"type": "string"},
                                 "lastname":  {"type": "string"},
@@ -50,7 +50,7 @@ class NotificationManager(object):
                         }
                     },
                     "additionalProperties": True,
-                    "required": ["follower", "followee", "frid", "follower_data"]
+                    "required": ["uid", "user"]
                 },
                 'method': self.create_sign_up_notification
             },
