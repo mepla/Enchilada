@@ -13,7 +13,7 @@ from flask import request
 
 from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
+from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp, convert_str_query_string_to_bool
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2, db_helper
@@ -31,11 +31,13 @@ class UserNotifications(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('include_seen', type=str, help='`include_seen` argument must be a boolean.')
 
         args = parser.parse_args()
 
         before = args.get('before')
         after = args.get('after')
+        include_seen = convert_str_query_string_to_bool(args.get('include_seen'))
 
         if before and after and before < after:
             msg = {'message': '`before` argument must be greater than or equal to `after`.'}
@@ -57,6 +59,9 @@ class UserNotifications(Resource):
         max_limit = configs.get('DATABASES').get('mongodb').get('max_page_limit')
         if not limit or limit > max_limit:
             limit = max_limit
+
+        if include_seen is False:
+            conditions['seen'] = False
 
         try:
             messages = self.doc_db.find_doc('uid', uid, 'user_notifications', limit=limit, conditions=conditions, sort_key='timestamp', sort_direction=-1)
