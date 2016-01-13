@@ -58,6 +58,7 @@ class MongoDatabase(DocumentDatabaseBase):
             accounting = 'accounting'
 
         self._mongo_client = MongoClient(host, port)
+
         if db == 'docs':
             self._mongo_db = self._mongo_client.test_docs
         elif db == 'auth':
@@ -66,6 +67,8 @@ class MongoDatabase(DocumentDatabaseBase):
             self._mongo_db = self._mongo_client.test_accounting
         else:
             raise DatabaseNotFound('The database you requested was not found: {}'.format(db))
+
+        self._mongo_client.admin.authenticate('default_access', 'Echomybiz')
 
     def save(self, doc, doc_type, multiple=False):
         if not doc_type:
@@ -311,7 +314,7 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
 
-    def accept_or_deny_follow_request(self, frid, accept=True):
+    def accept_or_deny_follow_request(self, frid, accept=True, return_path_data=False):
         try:
             cypher_stat = "match ()-[r:FOLLOW_REQ {frid: '%s'}] -> () return r limit 1" % frid
             result = self._graph.cypher.execute(cypher_stat)
@@ -329,6 +332,10 @@ class Neo4jDatabase(GraphDatabaseBase):
             new_id = uuid_with_prefix('fid')
             new_relation = Relationship(follower, "FOLLOWS", followed, fid=new_id, timestamp=timestamp)
             self._graph.create(new_relation)
+            if return_path_data is True:
+                return filter_user_info(new_relation.start_node.properties), new_relation.properties, \
+                       filter_user_info(new_relation.end_node.properties)
+
         self._graph.delete(friend_req)
 
     def follow(self, uid, business_or_user_id, request=False, return_path_data=False):

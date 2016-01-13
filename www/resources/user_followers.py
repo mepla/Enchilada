@@ -129,7 +129,10 @@ class UserFollowRequestAccept(Resource):
         frid = data.get('frid')
 
         try:
-            self.graph_db.accept_or_deny_follow_request(frid, accept)
+            result = self.graph_db.accept_or_deny_follow_request(frid, accept)
+            if accept is True:
+                follower, relation, followee = result
+
         except DatabaseRecordNotFound:
             msg = {'message': 'Could not accept or deny follow request.'}
             logging.debug(msg)
