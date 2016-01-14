@@ -29,12 +29,14 @@ class UserTimeline(Resource):
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
         parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
+        parser.add_argument('include_business_info', type=bool, help='`include_business_info` argument must be a boolean.')
 
         args = parser.parse_args()
 
         conditions = {}
 
         include_user_info = convert_str_query_string_to_bool(args.get('include_user_info'))
+        include_business_info = convert_str_query_string_to_bool(args.get('include_business_info'))
 
         before = args.get('before')
         after = args.get('after')
@@ -98,8 +100,35 @@ class UserTimeline(Resource):
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         response_list = response_list[0:limit]
 
-        if include_user_info:
+        if include_user_info or include_business_info:
+            businesses_data = {}
             for item in response_list:
-                item['user'] = all_followings_dict[item.get('uid')]
+                if include_user_info:
+                    item['user'] = all_followings_dict[item.get('uid')]
+                if include_business_info:
+                    bid = item.get('bid')
+                    if bid:
+                        existing_biz = businesses_data.get(bid)
+                        if not existing_biz:
+                            try:
+                                result = self.doc_db.find_doc('bid', bid, 'business')
+                                if result:
+                                    result = self.filter_business_info_for_timeline(result)
+                                    businesses_data[bid] = result
+                                    existing_biz = result
+                            except:
+                                pass
+
+                        item['business'] = existing_biz
 
         return filter_general_document_db_record(response_list)
+
+    def filter_business_info_for_timeline(self, business_info):
+        filtered_info = {}
+        if 'name' in business_info:
+            filtered_info['name'] = business_info['name']
+        if 'address' in business_info:
+            filtered_info['address'] = business_info['address']
+        if 'hrbid' in business_info:
+            filtered_info['hrbid'] = business_info['hrbid']
+        return filtered_info
