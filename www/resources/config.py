@@ -9,6 +9,7 @@ default_configs = \
 {
     "debug_mode": True,
     "LOGLEVEL": "DEBUG",
+    "HMAC_KEY": "test-key",
     "DATABASES": {
         "neo4j": {
             "username": "neo4j",
@@ -30,7 +31,8 @@ default_configs = \
         "reviews": {
             "lowest_acceptable_rating": 2,
             "latest_count": 10
-        }
+        },
+        'forgot_password_expiration': 3600 * 24
     }
 }
 

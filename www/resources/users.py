@@ -1,3 +1,5 @@
+from www.resources.authentication.password_management import PasswordManager
+
 __author__ = 'Mepla'
 
 import logging
@@ -5,7 +7,8 @@ import logging
 from flask import request
 from flask_restful import Resource
 
-from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema
+from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema, \
+    change_normal_password_schema
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
 from www import oauth2, db_helper
@@ -133,3 +136,52 @@ class User(Resource):
             msg = {'message': 'Internal server error'}
             return msg, 500
 
+
+class UserChangePassword(Resource):
+    def __init__(self):
+        self.doc_db = DatabaseFactory().get_database_driver('document/auth')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def post(self, uid, target_uid):
+        try:
+            data = request.get_json(force=True, silent=False)
+        except Exception as exc:
+            msg = {'msg': 'Your JSON is invalid.'}
+            logging.error(msg)
+            return msg, 400
+
+        try:
+            validate_json(data, change_normal_password_schema)
+        except JsonValidationException as exc:
+            msg = {'message': exc.message}
+            logging.error(msg)
+            return msg, 400
+
+        new_pass = data.get('new_password')
+        old_pass = data.get('old_password')
+
+        try:
+            existing_user = self.graph_db.find_single_user('uid', target_uid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'Your username and password combination is not correct.'}
+            logging.error(msg)
+            return msg, 401
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Internal server error'}
+            logging.error(msg)
+            return msg, 500
+
+        if existing_user:
+            if PasswordManager.compare_passwords(old_pass, existing_user['password'], existing_user['uid'], existing_user['email']):
+                new_hash = PasswordManager.hash_password(new_pass, target_uid, existing_user['email'])
+                existing_user['password'] = new_hash
+                self.graph_db.update(existing_user)
+            else:
+                msg = {'message': 'Your old password is not correct.'}
+                return msg, 401
+        else:
+            msg = {'message': 'Your username and password combination is not correct.'}
+            return msg, 401

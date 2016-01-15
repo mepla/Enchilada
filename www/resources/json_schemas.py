@@ -249,6 +249,35 @@ user_notification_seen_schema =\
         "required": ["seen"]
     }
 
+forgot_password_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "email":  {"type": "string"}
+        },
+        "required": ["email"]
+    }
+
+change_normal_password_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "new_password":  {"type": "string"},
+            "old_password":  {"type": "string"}
+        },
+        "required": ["new_password", "old_password"]
+    }
+
+change_forgotten_password_schema =\
+    {
+        "type": "object",
+        "properties": {
+            "new_password":  {"type": "string"},
+            "token":  {"type": "string"}
+        },
+        "required": ["new_password", "token"]
+    }
+
 
 def validate_json(json_data, schema):
     try:

@@ -1,6 +1,7 @@
 from www.resources.business_faq import BusinessFAQ
 from www.resources.business_points import BusinessBalance
 from www.resources.enchilada_builtins import Business
+from www.resources.forgot_password import ForgotPassword, ChangeForgottenPassword
 from www.resources.point_transactions import PointTransactions
 from www.resources.storage import Storage, StorageAccess
 from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept
@@ -15,7 +16,7 @@ import logging
 
 from www.resources.sign_up import SignUp
 from www.resources.login import Login
-from www.resources.users import User, Users
+from www.resources.users import User, Users, UserChangePassword
 from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses, BusinessAdmins, BusinessAdmin
 from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
@@ -74,6 +75,9 @@ def initialize_app():
     api.add_resource(BusinessBalance, '/businesses/<string:bid>/balances/<string:uid>')
     api.add_resource(PointTransactions, '/businesses/<string:bid>/point_transactions/<string:uid>')
 
+    api.add_resource(UserChangePassword, '/users/<string:target_uid>/change_password')
+    api.add_resource(ForgotPassword, '/forgot_password')
+    api.add_resource(ChangeForgottenPassword, '/forgot_password/new_password')
 
 if __name__ == '__main__':
     initialize_app()
