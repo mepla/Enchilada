@@ -74,6 +74,7 @@ class Login(Resource):
                 return msg, 400
 
             username = data.get('username')
+            username = username.lower()
             password = data.get('password')
 
             graph_db = DatabaseFactory().get_database_driver('graph')
