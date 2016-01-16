@@ -9,8 +9,7 @@ from flask import request
 
 from flask_restful import Resource
 
-from www.resources.utilities.helpers import uuid_with_prefix
-from www import utils
+from www.resources.utilities.helpers import uuid_with_prefix, check_email_format
 from www.resources.authentication import password_management as pm
 from www.resources.json_schemas import validate_json, JsonValidationException, signup_schema
 from www.resources.databases.factories import DatabaseFactory
@@ -51,11 +50,13 @@ class SignUp(Resource):
             return msg, 400
 
         email = body.get('email')
-        if not utils.check_email_format(email):
+        if not check_email_format(email):
             msg = {'message': 'The email address you entered is invalid.',
                    'error': 'invalid_email'}
             logging.error(msg)
             return msg, 400
+
+        email = email.lower()
 
         try:
             user_exists = self.graph_db.find_single_user('email', email)

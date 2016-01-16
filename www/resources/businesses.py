@@ -39,6 +39,7 @@ class Businesses(Resource):
             logging.error(msg)
             return msg, 400
 
+        body['email'] = body['email'].lower()
         try:
             return self.graph_db.create_new_business(**body)
         except Exception as exc:

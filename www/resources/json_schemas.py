@@ -34,7 +34,6 @@ user_put_schema = {
     "properties":{
         "name":  { "type": "string" },
         "lastname": { "type": "string" },
-        "email": { "type": "string" },
         "gender": { "type": "string" },
         "birth_date": { "type": "string" },
         "device": { "type": "string" },
@@ -43,7 +42,7 @@ user_put_schema = {
         "longitude": { "type": "number" },
         "image": {"type": "string"}
     },
-    "additionalProperties": True
+    "additionalProperties": False
 }
 
 login_schema = {
