@@ -65,7 +65,8 @@ class UserTimeline(Resource):
 
             all_followings_dict = {}
             for user in followings_list:
-                all_followings_dict[(user.get('user').get('uid'))] = filter_user_info(user.get('user'))
+                user_uid = (user.get('user').get('uid'))
+                all_followings_dict[user_uid] = filter_user_info(user.get('user'))
 
             conditions['uid'] = {'$in': all_followings_dict.keys()}
 
@@ -102,9 +103,24 @@ class UserTimeline(Resource):
 
         if include_user_info or include_business_info:
             businesses_data = {}
+            users_data = {}
             for item in response_list:
                 if include_user_info:
-                    item['user'] = all_followings_dict[item.get('uid')]
+                    uid = item.get('uid')
+                    if uid:
+                        existing_user = users_data.get(uid)
+                        if not existing_user:
+                            try:
+                                result = self.doc_db.find_doc('uid', uid, 'user')
+                                if result:
+                                    result = filter_user_info(result)
+                                    users_data[uid] = result
+                                    existing_user = result
+                            except:
+                                pass
+
+                        item['user'] = existing_user
+
                 if include_business_info:
                     bid = item.get('bid')
                     if bid:
