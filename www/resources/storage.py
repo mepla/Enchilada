@@ -63,12 +63,27 @@ class StorageAccess(Resource):
 
     @oauth2.check_access_token
     def get(self, file_id, uid=None):
-        directory = configs['STORAGE']['STORAGE_PATH']
-        directory = directory.rstrip('/') + '/' + uid
-        full_path = directory + '/' + file_id
-        logging.debug('User ({}) requested file: {}'.format(uid, full_path))
 
-        if not os.path.isfile(full_path):
+        logging.debug('User ({}) requested file: {}'.format(uid, file_id))
+
+        parent_dir = self._find_doc(file_id, uid)
+
+        if not parent_dir:
             return make_response(jsonify({'message': 'The file you requested does not exits.'}), 404)
         else:
-            return send_from_directory(directory, file_id, as_attachment=True)
+            return send_from_directory(parent_dir, file_id, as_attachment=True)
+
+    def _find_doc(self, file_id, uid):
+        directory = configs['STORAGE']['STORAGE_PATH']
+        directory = directory.rstrip('/') + '/'
+        sub_directory = directory + uid
+        full_path = sub_directory + '/' + file_id
+
+        if not os.path.isfile(full_path):
+            for (path, dirs, files) in os.walk(directory):
+                if file_id in files:
+                    return path
+        else:
+            return sub_directory
+
+        return None
