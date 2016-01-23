@@ -79,7 +79,7 @@ class UserMessages(Resource):
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
-    def post(self, target_uid):
+    def post(self, target_uid, uid):
         try:
             data = request.get_json(force=True, silent=False)
         except Exception as exc:
@@ -95,7 +95,7 @@ class UserMessages(Resource):
             return msg, 400
 
         try:
-            existing_user = self.graph_db.find_single_user('uid', uid)
+            existing_user = self.graph_db.find_single_user('uid', target_uid)
         except DatabaseRecordNotFound as exc:
             msg = {'message': 'The user you tried to post message to does not exist.'}
             logging.debug(msg)

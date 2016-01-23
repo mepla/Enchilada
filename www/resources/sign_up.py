@@ -1,4 +1,4 @@
-from www.resources.notification_manager import NotificationManager
+from www.resources.notifications.notification_manager import NotificationManager
 
 __author__ = 'Mepla'
 
@@ -16,7 +16,7 @@ from www.resources.databases.factories import DatabaseFactory
 from www.resources.databases.database_drivers import DatabaseRecordNotFound
 from www.resources.users import filter_user_info
 
-number_of_allowed_users_with_udid = 3
+number_of_allowed_users_with_udid = 100
 
 
 class SignUp(Resource):

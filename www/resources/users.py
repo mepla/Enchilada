@@ -27,7 +27,7 @@ class User(Resource):
 
     def __init__(self):
         super(User, self).__init__()
-        self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -35,12 +35,12 @@ class User(Resource):
         logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
         print('PATH: {} user_id: {}  uid: {}'.format(request.path, user_id, uid))
         try:
-            existing_user = self.graph_db.find_single_user('uid', user_id)
+            existing_user = self.doc_db.find_doc('uid', user_id, 'user')
             return filter_user_info(existing_user)
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}
             logging.info(msg)
-            logging.debug('Error querying graph database: {} -> {}'.format(exc, exc.message))
+            logging.debug('Error querying doc database: {} -> {}'.format(exc, exc.message))
             return msg, 500
         except DatabaseRecordNotFound:
             msg = {'message': 'User does not exist.'}
@@ -68,7 +68,7 @@ class User(Resource):
         logging.debug('Client requested to update (PUT) user info for user_id: {}'.format(user_id))
 
         try:
-            existing_user = self.graph_db.find_single_user('uid', user_id)
+            existing_user = self.doc_db.find_doc('uid', user_id, 'user')
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}
             logging.info(msg)
@@ -84,7 +84,7 @@ class User(Resource):
                 existing_user[key] = data[key]
 
         try:
-            result = self.graph_db.update(existing_user)
+            result = self.doc_db.replace_a_doc('uid', user_id, 'user', existing_user)
             return filter_user_info(result), 200
         except DocumentNotUpdated:
             msg = {'message': 'User was not updated. Please check your inputs and try again.'}

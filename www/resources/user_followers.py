@@ -1,6 +1,8 @@
 from flask import request
+
 from www.resources.json_schemas import validate_json, user_follow_req_accept_schema, JsonValidationException
-from www.resources.notification_manager import NotificationManager
+from www.resources.notifications.notification_manager import NotificationManager
+from www.resources.utilities.helpers import filter_user_info
 
 __author__ = 'Mepla'
 
@@ -17,6 +19,7 @@ from www import oauth2, db_helper
 class UserFollowers(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -35,18 +38,25 @@ class UserFollowers(Resource):
             return msg, 500
 
         try:
-            response = self.graph_db.find_user_followers(target_uid)
+            neo_result = self.graph_db.find_user_followers(target_uid)
         except DatabaseEmptyResult:
             msg = {'message': 'There is no followers for this user.'}
             logging.debug(msg)
             return msg, 204
 
-        return response
+        following_uids = [x.get('user').get('uid') for x in neo_result]
+        conditions = {'uid': {'$in': following_uids}}
+        mongo_result = self.doc_db.find_doc(None, None, 'user', 10000, conditions)
+        for i in range(0, len(neo_result)):
+            neo_result[i]['user'] = mongo_result[i]
+
+        return neo_result
 
 
 class UserFollowRequests(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
         self.notification_manager = NotificationManager()
 
     @oauth2.check_access_token
@@ -66,13 +76,19 @@ class UserFollowRequests(Resource):
             return msg, 500
 
         try:
-            response = self.graph_db.find_user_followers(target_uid, request=True)
+            neo_result = self.graph_db.find_user_followers(target_uid, request=True)
         except DatabaseEmptyResult:
             msg = {'message': 'There is no followers for this user.'}
             logging.debug(msg)
             return msg, 204
 
-        return response
+        following_uids = [x.get('user').get('uid') for x in neo_result]
+        conditions = {'uid': {'$in': following_uids}}
+        mongo_result = self.doc_db.find_doc(None, None, 'user', 10000, conditions)
+        for i in range(0, len(neo_result)):
+            neo_result[i]['user'] = mongo_result[i]
+
+        return neo_result
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -130,8 +146,8 @@ class UserFollowRequestAccept(Resource):
 
         try:
             result = self.graph_db.accept_or_deny_follow_request(frid, accept)
-            if accept is True:
-                follower, relation, followee = result
+            # if accept is True:
+            #     follower, relation, followee = result
 
         except DatabaseRecordNotFound:
             msg = {'message': 'Could not accept or deny follow request.'}

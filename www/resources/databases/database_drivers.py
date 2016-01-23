@@ -68,7 +68,7 @@ class MongoDatabase(DocumentDatabaseBase):
         else:
             raise DatabaseNotFound('The database you requested was not found: {}'.format(db))
 
-        self._mongo_client.admin.authenticate('default_access', 'Echomybiz')
+        #self._mongo_client.admin.authenticate('default_access', 'Echomybiz')
 
     def save(self, doc, doc_type, multiple=False):
         if not doc_type:
@@ -101,6 +101,25 @@ class MongoDatabase(DocumentDatabaseBase):
                 objs = self._mongo_db[doc_type].update_many(find_predicate, updated_fields)
             else:
                 obj = self._mongo_db[doc_type].update_one(find_predicate, updated_fields)
+        except Exception as exc:
+            logging.error('Error updating doc: {} exc: {}'.format(self._mongo_db, exc))
+            raise DatabaseSaveError()
+
+    def replace_a_doc(self, key, value, doc_type, doc, conditions=None):
+        if not doc_type:
+            raise DatabaseSaveError('No doc_type provided.')
+
+        try:
+            find_predicate = {}
+            if conditions:
+                find_predicate = conditions
+
+            if key and value:
+                find_predicate[key] = value
+
+            find_predicate = self._convert_conditions_to_mongo_style(find_predicate)
+
+            obj = self._mongo_db[doc_type].replace_one(find_predicate, doc)
         except Exception as exc:
             logging.error('Error updating doc: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseSaveError()
@@ -204,6 +223,17 @@ class Neo4jDatabase(GraphDatabaseBase):
         authenticate(neo4j_address, username, password)
         self._graph = Graph('http://' + neo4j_address + '/db/data')
         self.docs_in_memory = {}
+
+    def find_all_nodes_with_label(self, label):
+        results = self._graph.cypher.execute('match (n:{}) return n'.format(label))
+        response = []
+        for node in results:
+            user_data = node.n.properties
+            if 'type' in user_data:
+                user_data['user_type'] = user_data['type']
+                del user_data['type']
+            response.append(filter_general_document_db_record(dict(user_data)))
+        return response
 
     def update(self, doc):
         existing_doc = self.docs_in_memory.get(doc.get('uid')) or self.docs_in_memory.get(doc.get('bid')) or self.docs_in_memory.get(doc.get('rid')) or self.docs_in_memory.get(doc.get('id'))
@@ -450,7 +480,7 @@ class Neo4jDatabase(GraphDatabaseBase):
             res = record.r
             user = res.end_node
             timestamp = res.properties['timestamp']
-            response_list.append({'timestamp': timestamp, 'user': filter_user_info(user.properties)})
+            response_list.append({'timestamp': timestamp, 'user': user.properties})
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list

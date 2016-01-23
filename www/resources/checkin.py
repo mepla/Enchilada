@@ -1,4 +1,4 @@
-from www.resources.notification_manager import NotificationManager
+from www.resources.notifications.notification_manager import NotificationManager
 from www.resources.utilities.helpers import utc_now_timestamp, uuid_with_prefix, filter_general_document_db_record
 
 __author__ = 'Mepla'
@@ -9,8 +9,7 @@ from flask_restful import Resource
 
 from www.resources.databases.factories import DatabaseFactory
 from www import oauth2, db_helper
-from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseFindError, \
-    DatabaseSaveError
+from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseEmptyResult, DatabaseFindError
 
 
 class CheckIn(Resource):

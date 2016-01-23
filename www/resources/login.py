@@ -77,9 +77,9 @@ class Login(Resource):
             username = username.lower()
             password = data.get('password')
 
-            graph_db = DatabaseFactory().get_database_driver('graph')
+            doc_db = DatabaseFactory().get_database_driver('document/docs')
             try:
-                existing_user = graph_db.find_single_user('email', username)
+                existing_user = doc_db.find_doc('email', username, 'user')
             except DatabaseRecordNotFound as exc:
                 msg = {'message': 'Your username and password combination is not correct.'}
                 logging.error(msg)

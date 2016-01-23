@@ -33,6 +33,7 @@ user_put_schema = {
     "type": "object",
     "properties":{
         "name":  { "type": "string" },
+        "email":  { "type": "string" },
         "lastname": { "type": "string" },
         "gender": { "type": "string" },
         "birth_date": { "type": "string" },
