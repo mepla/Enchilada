@@ -146,7 +146,7 @@ survey_result_schema = '''
 }
 '''
 
-message_schema = \
+message_post_schema = \
     {
         "type": "object",
         "properties":{
@@ -155,6 +155,16 @@ message_schema = \
         },
         "additionalProperties": False,
         "required": [ "body"]
+    }
+
+message_put_schema = \
+    {
+        "type": "object",
+        "properties": {
+            "seen": {"type": "boolean"}
+        },
+        "additionalProperties": True,
+        "required": ["seen"]
     }
 
 review_schema = \

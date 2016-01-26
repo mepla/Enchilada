@@ -80,13 +80,29 @@ class SignUp(Resource):
             logging.debug(msg)
             return msg, 400
 
-        body['type'] = 'personal'
+        body['user_type'] = 'personal'
         body['uid'] = uuid_with_prefix('uid')
         body['responsible_for'] = body['uid']
         if additional_resposibilities and len(additional_resposibilities) > 0:
             body['responsible_for'] += ' ' + ' '.join(additional_resposibilities)
         hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
         body['password'] = hashed_password
+
+        body['phone'] = ''
+        body['echo_number'] = self._generate_echo_number()
+        body['settings'] = {
+            "privacy_settings": {
+                "private_checkins": False,
+                "private_profile": False,
+                "private_reviews": False
+            }
+        }
+        body['hruid'] = self._generate_hruid()
+        body['metrics'] = {
+            "followers_count": 0,
+            "followings_count": 0,
+            "chosen_reviews_count": 0
+        }
 
         created_user = self.graph_db.create_new_user(**body)
         uid = created_user.get('uid')
@@ -103,3 +119,9 @@ class SignUp(Resource):
         self.notification_manager.add_notification('sign_up', {'uid': uid, 'user': created_user})
 
         return filter_user_info(created_user)
+
+    def _generate_echo_number(self):
+        return ''
+
+    def _generate_hruid(self):
+        return ''

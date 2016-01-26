@@ -23,7 +23,7 @@ class Users(Resource):
 
 # /users/{user_id}
 class User(Resource):
-    read_only_fields = ['email', 'uid', 'udid', 'password']
+    read_only_fields = ['email', 'uid', 'udid', 'password', "metrics", "hruid", "user_type", "birth_date", "echo_number", "gender", "phone"]
 
     def __init__(self):
         super(User, self).__init__()

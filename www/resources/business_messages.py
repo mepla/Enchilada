@@ -13,7 +13,7 @@ from www.resources.databases.database_drivers import DatabaseSaveError, Database
     DatabaseEmptyResult
 from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp
 from www.resources.databases.factories import DatabaseFactory
-from www.resources.json_schemas import validate_json, JsonValidationException, message_schema
+from www.resources.json_schemas import validate_json, JsonValidationException, message_post_schema
 from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2, db_helper
 
@@ -87,7 +87,7 @@ class BusinessMessages(Resource):
             return msg, 400
 
         try:
-            validate_json(data, message_schema)
+            validate_json(data, message_post_schema)
         except JsonValidationException as exc:
             msg = {'message': exc.message}
             logging.error(msg)
