@@ -147,4 +147,6 @@ class UserTimeline(Resource):
             filtered_info['address'] = business_info['address']
         if 'hrbid' in business_info:
             filtered_info['hrbid'] = business_info['hrbid']
+        if 'gallery' in business_info:
+            filtered_info['gallery'] = business_info['gallery']
         return filtered_info
