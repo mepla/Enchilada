@@ -180,7 +180,7 @@ class BusinessReviews(Resource):
             logging.error(msg)
             return msg, 500
 
-        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid')}
+        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid'), "chosen_count": 0}
 
         min_acceptatble_rating = configs.get("POLICIES").get('reviews').get('lowest_acceptable_rating')
         rating = data.get('rating')
