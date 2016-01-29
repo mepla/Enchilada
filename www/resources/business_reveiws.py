@@ -126,11 +126,15 @@ class BusinessReviews(Resource):
             else:
                 reviews = self.doc_db.find_doc('bid', bid, 'business_reviews', limit=limit, conditions=conditions, sort_key=sort_by, sort_direction=sort_order)
                 if include_user_info:
+                    user_infos = {}
                     for review in reviews:
                         review_uid = review.get('uid')
                         try:
-                            existing_user = self.graph_db.find_single_user('uid', review_uid)
-                            review['user'] = filter_user_info(existing_user)
+                            existing_user = user_infos.get(review_uid)
+                            if not existing_user:
+                                existing_user = self.doc_db.find_doc('uid', review_uid, doc_type='user', limit=1)
+                                user_infos[review_uid] = filter_user_info(existing_user)
+                            review['user'] = user_infos.get(review_uid)
                         except Exception as exc:
                             logging.error('Could not fetch user info in Business Reviews: {}'.format(exc))
 
