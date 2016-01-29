@@ -14,6 +14,7 @@ class BusinessBalance(Resource):
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
+    # /businesses/<string:bid>/balances/<string:uid>
     def get(self, uid, bid):
         try:
             result = self._accountant.get_balance(uid, bid)

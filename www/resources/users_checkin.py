@@ -17,7 +17,7 @@ class UsersCheckin(Resource):
     @oauth2.check_access_token
     @db_helper.handle_aliases
     def get(self, user_id, uid):
-        logging.debug('Client requested to retrieve user info for user_id: {}'.format(user_id))
+        logging.debug('Client requested to retrieve user checkins for user_id: {}'.format(user_id))
 
         try:
             users_checkin = self.graph_db.find_single_user_checkins(user_id)

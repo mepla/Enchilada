@@ -17,9 +17,25 @@ class Accountant(object):
         for ptr in audited_transaction.ptrs:
             ptr.process()
 
-    def get_point_transactions(self, uid, bid, before=None, after=None, limit=None):
+    def get_point_transactions(self, uid, bid=None, before=None, after=None, limit=None, user_role=None):
         try:
-            conditions = {'$or': [{"creditor": bid, 'debtor': uid}, {"creditor": uid, 'debtor': bid}]}
+            if not user_role:
+                user_role = 'all'
+
+            if bid:
+                if user_role == 'creditor':
+                    conditions = {"creditor": uid, 'debtor': bid}
+                elif user_role == 'debtor':
+                    conditions = {"creditor": bid, 'debtor': uid}
+                else:
+                    conditions = {'$or': [{"creditor": bid, 'debtor': uid}, {"creditor": uid, 'debtor': bid}]}
+            else:
+                if user_role == 'creditor':
+                    conditions = {"creditor": uid}
+                elif user_role == 'debtor':
+                    conditions = {"debtor": uid}
+                else:
+                    conditions = {'$or': [{'debtor': uid}, {"creditor": uid}]}
 
             if before:
                 conditions['timestamp'] = {'$lt': before}
