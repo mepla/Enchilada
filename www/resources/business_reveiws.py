@@ -248,6 +248,59 @@ class BusinessReview(Resource):
         return filter_general_document_db_record(message)
 
 
+class ChooseBusinessReview(Resource):
+    def __init__(self):
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def post(self, uid, rid, bid=None, target_uid=None):
+        try:
+            review = self.doc_db.find_doc('rid', rid, 'business_reviews', 1)
+            choosers = review.get('choosers')
+            if not choosers:
+                choosers = {}
+            if uid in choosers:
+                msg = {'message': 'You have already chosen this review.'}
+                logging.error(msg)
+                return msg, 400
+
+            reviewer_id = review.get('uid')
+
+            if uid in reviewer_id:
+                msg = {'message': 'You can not choose your own review.'}
+                logging.error(msg)
+                return msg, 400
+
+            else:
+                choosers[uid] = utc_now_timestamp()
+                self.doc_db.update('rid', rid, 'business_reviews', {'$set': {'choosers': choosers}})
+                reviewer = self.doc_db.find_doc('uid', reviewer_id, 'user', 1)
+                if reviewer:
+                    metrics = reviewer.get('metrics')
+                    if not metrics:
+                        metrics = {"followers_count": 0, "followings_count": 0, "chosen_reviews_count": 0}
+                    metrics['chosen_reviews_count'] += 1
+                    self.doc_db.update('uid', reviewer_id, 'user', {'$set': {'metrics': metrics}})
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Could not retrieve requested information'}
+            logging.error(msg)
+            return msg, 500
+
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The information you requested is not found'}
+            logging.info(msg)
+            return msg, 404
+
+        except DatabaseEmptyResult as exc:
+            msg = {'message': 'There are no reviews.'}
+            logging.info(msg)
+            return msg, 204
+
+        return filter_general_document_db_record(review)
+
+
 class BusinessReviewsSummary(Resource):
     def __init__(self):
         self.doc_db = DatabaseFactory().get_database_driver('document/docs')
