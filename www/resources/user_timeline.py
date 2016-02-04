@@ -30,6 +30,7 @@ class UserTimeline(Resource):
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
         parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
         parser.add_argument('include_business_info', type=bool, help='`include_business_info` argument must be a boolean.')
+        parser.add_argument('user_only', type=bool, help='`user_only` argument must be a boolean.')
 
         args = parser.parse_args()
 
@@ -37,6 +38,13 @@ class UserTimeline(Resource):
 
         include_user_info = convert_str_query_string_to_bool(args.get('include_user_info'))
         include_business_info = convert_str_query_string_to_bool(args.get('include_business_info'))
+        user_only = convert_str_query_string_to_bool(args.get('user_only'))
+
+        if not user_only:
+            if uid != target_uid:
+                msg = {'message': 'You are not authorized to get this request.'}
+                logging.debug(msg)
+                return msg, 403
 
         before = args.get('before')
         after = args.get('after')
@@ -61,14 +69,17 @@ class UserTimeline(Resource):
             limit = max_limit
 
         try:
-            followings_list = self.graph_db.find_user_followings(target_uid, users=True, businesses=False)
+            if user_only:
+                conditions['uid'] = target_uid
+            else:
+                followings_list = self.graph_db.find_user_followings(target_uid, users=True, businesses=False)
 
-            all_followings_dict = {}
-            for user in followings_list:
-                user_uid = (user.get('user').get('uid'))
-                all_followings_dict[user_uid] = filter_user_info(user.get('user'))
+                all_followings_dict = {}
+                for user in followings_list:
+                    user_uid = (user.get('user').get('uid'))
+                    all_followings_dict[user_uid] = filter_user_info(user.get('user'))
 
-            conditions['uid'] = {'$in': all_followings_dict.keys()}
+                conditions['uid'] = {'$in': all_followings_dict.keys()}
 
         except DatabaseEmptyResult:
             msg = {'message': 'There is no followings for this user.'}
