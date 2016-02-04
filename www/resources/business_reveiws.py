@@ -204,13 +204,15 @@ class BusinessReviews(Resource):
                 logging.fatal('There was not a rating_average in business document (There really should be one).')
                 reviews_average = 0
 
+            if not reviews_average:
+                reviews_average = 0
             new_average = round(float(reviews_average * reviews_count + rating) / float(reviews_count + 1), 2)
             existing_business['reviews']['average_rating'] = new_average
             existing_business['reviews']['count'] = reviews_count + 1
 
         try:
             if doc['status'] == 'accepted':
-                self.doc_db.update('bid', bid, 'business', {'$set': {'reviews': {'average_rating': new_average}, 'reviews': {'count': reviews_count+1}}})
+                self.doc_db.update('bid', bid, 'business', {'$set': {'reviews': {'average_rating': new_average, 'count':reviews_count+1}}})
             self.doc_db.save(doc, 'business_reviews')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}

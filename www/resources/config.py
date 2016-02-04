@@ -32,7 +32,8 @@ default_configs = \
             "lowest_acceptable_rating": 2,
             "latest_count": 10
         },
-        'forgot_password_expiration': 3600 * 24
+        "forgot_password_expiration": 3600 * 24,
+        "near_distance": 5
     }
 }
 

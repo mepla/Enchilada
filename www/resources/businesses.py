@@ -1,3 +1,5 @@
+from flask_restful.reqparse import RequestParser
+from www.resources.config import configs
 from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseFindError, DatabaseRecordNotFound, \
     DocumentNotUpdated, DatabaseEmptyResult
 
@@ -8,7 +10,8 @@ from www.resources.databases.factories import DatabaseFactory
 from www.resources.json_schemas import validate_json, JsonValidationException, business_update_schema, business_signup_schema, \
     business_category_add_single_schema, add_admin_for_business_schema
 from flask import request
-from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info
+from www.resources.utilities.helpers import filter_general_document_db_record, filter_user_info, \
+    convert_str_query_string_to_bool, country_iso_of_location, distance_of_two_locations
 
 import logging
 from www import oauth2, db_helper
@@ -19,6 +22,7 @@ class Businesses(Resource):
     def __init__(self):
         super(Businesses, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -46,6 +50,106 @@ class Businesses(Resource):
             msg = {'message': 'Internal server error'}
             logging.error(exc, msg)
             return msg
+
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def get(self, uid=None):
+        parser = RequestParser()
+        parser.add_argument('near_me', type=bool, help='`return_count` argument must be a boolean.')
+        parser.add_argument('lat', type=float, help='`lat` argument must be a float.')
+        parser.add_argument('lon', type=float, help='`lon` argument must be a float.')
+        parser.add_argument('name', type=str, help='`name` argument must be a string.')
+        parser.add_argument('country', type=str, help='`country` argument must be a string.')
+        parser.add_argument('city', type=str, help='`city` argument must be a string.')
+        parser.add_argument('category', type=str, help='`category` argument must be a string.')
+        parser.add_argument('category_id', type=str, help='`category` argument must be a string.')
+        parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
+
+        parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
+        parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
+        parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('sort_by', type=str, help='`sort_by` argument must be a string.')
+
+        args = parser.parse_args()
+
+        near_me = convert_str_query_string_to_bool(args.get('near_me'))
+        lat = args.get('lat')
+        lon = args.get('lon')
+        name = args.get('name')
+        country = args.get('country')
+        city = args.get('city')
+        category = args.get('category')
+        category_id = args.get('category_id')
+        rating = args.get('rating')
+
+        if near_me and (not lon or not lat):
+            msg = {'message': 'You can not request near_me without providing `lat` and `lon`'}
+            logging.debug(msg)
+            return msg, 400
+
+        conditions = {}
+
+        if name:
+            conditions['name'] = {"$regex": ".*{}.*".format(name), "$options": 'i'}
+
+        if country or city or near_me:
+            conditions['address'] = {}
+
+        if country:
+            conditions['address']['country'] = country.upper()
+
+        if city:
+            conditions['address']['city'] = {"$regex": ".*{}.*".format(city), "$options": 'i'}
+
+        if category:
+            category = ' '.join([x.capitalize() for x in category.split()])
+            conditions['category'] = {'name': category}
+
+        if category_id:
+            conditions['category'] = {'id': category_id}
+
+        if rating:
+            conditions['reviews'] = {'average_rating': {'$gt': rating}}
+
+        if near_me:
+            iso = country_iso_of_location(lat, lon)
+            if iso:
+                conditions['address']['country'] = iso
+
+        if len(conditions) < 1:
+            msg = {'message': 'You can not request to find a business without any query strings.'}
+            logging.debug(msg)
+            return msg, 400
+
+        try:
+            businesses = self.doc_db.find_doc(None, None, 'business', conditions=conditions, limit=30)
+            if near_me:
+                near_me_distance = configs.get('POLICIES').get('near_distance')
+                businesses_copy = list(businesses)
+                businesses = []
+                for biz in businesses_copy:
+                    biz_lat = biz.get('address').get('lat')
+                    biz_lon = biz.get('address').get('long')
+                    d = distance_of_two_locations(lat, lon, biz_lat, biz_lon)
+                    if d < near_me_distance:
+                        biz['distance'] = round(d, 2)
+                        businesses.append(biz)
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Internal server error.'}
+            logging.error('Error reading database for business_survey_templates.')
+            return msg, 500
+        except DatabaseEmptyResult as exc:
+            msg = {'message': 'There are no survey templates for this business.'}
+            logging.error(msg)
+            return msg, 204
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'There are no survey templates for this business.'}
+            logging.error(msg)
+            return msg, 204
+
+        return filter_general_document_db_record(businesses)
 
 
 class BusinessProfile(Resource):

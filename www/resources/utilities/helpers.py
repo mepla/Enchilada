@@ -1,6 +1,9 @@
 import uuid
 import re
 import datetime
+from geopy.geocoders import Nominatim
+from geopy.distance import vincenty
+
 
 __author__ = 'Mepla'
 
@@ -107,6 +110,27 @@ def convert_str_query_string_to_bool(query_str, default=False):
         return True
     else:
         return False
+
+
+def country_iso_of_location(lat, lon):
+    geolocator = Nominatim()
+    try:
+        location = geolocator.reverse((lat, lon))
+        iso = location.raw.get('address').get('country_code')
+        iso = iso.upper()
+    except Exception as exc:
+        iso = None
+
+    return iso
+
+
+def distance_of_two_locations(lat1, lon1, lat2, lon2):
+    try:
+        d = vincenty((lat1, lon1), (lat2, lon2)).kilometers
+    except Exception as exc:
+        d = 99999999
+
+    return d
 
 
 class Patch(object):

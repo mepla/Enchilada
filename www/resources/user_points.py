@@ -25,6 +25,7 @@ class UserPointTransactions(Resource):
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
         parser.add_argument('user_role', type=str, help='`user_role` argument must be one of these: `all`, `creditor` or `debtor`')
+        parser.add_argument('include_business_info', type=bool, help='`include_business_info` argument must be a boolean.')
 
         args = parser.parse_args()
 
