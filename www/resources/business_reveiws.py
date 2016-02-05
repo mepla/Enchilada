@@ -110,7 +110,7 @@ class BusinessReviews(Resource):
                     return {'count': 0}
                 else:
                     return []
-            following_uids = [str(following_user.get('user').get('uid')) for following_user in result]
+            following_uids = [str(following_user.get('following').get('uid')) for following_user in result]
             conditions['uid'] = {'$in': following_uids}
 
         limit = args.get('limit')

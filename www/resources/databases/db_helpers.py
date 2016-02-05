@@ -37,4 +37,10 @@ class DBHelper(object):
                 logging.debug('Error querying database: {} -> {}'.format(exc, exc.message))
                 return msg, 500
 
+            except Exception as exc:
+                msg = {'message': 'Internal server error.'}
+                logging.info(msg)
+                logging.debug('General exception: {} -> {}'.format(exc, exc.message))
+                return msg, 500
+
         return wrapper

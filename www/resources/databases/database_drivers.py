@@ -478,9 +478,9 @@ class Neo4jDatabase(GraphDatabaseBase):
         response_list = list()
         for record in results:
             res = record.r
-            user = res.end_node
+            end_node = res.end_node
             timestamp = res.properties['timestamp']
-            response_list.append({'timestamp': timestamp, 'user': user.properties})
+            response_list.append({'timestamp': timestamp, 'following': end_node.properties})
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list

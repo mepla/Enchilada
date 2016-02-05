@@ -76,8 +76,8 @@ class UserTimeline(Resource):
 
                 all_followings_dict = {}
                 for user in followings_list:
-                    user_uid = (user.get('user').get('uid'))
-                    all_followings_dict[user_uid] = filter_user_info(user.get('user'))
+                    user_uid = (user.get('following').get('uid'))
+                    all_followings_dict[user_uid] = filter_user_info(user.get('following'))
 
                 conditions['uid'] = {'$in': all_followings_dict.keys()}
 
