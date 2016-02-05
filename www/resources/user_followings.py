@@ -60,12 +60,18 @@ class UserFollowings(Resource):
             elif bid:
                 following_bids.append(bid)
 
-        user_conditions = {'uid': {'$in': following_uids}}
-        mongo_user_result = self.doc_db.find_doc(None, None, 'user', 10000, user_conditions)
+        if len(following_uids) > 0:
+            user_conditions = {'uid': {'$in': following_uids}}
+            mongo_user_result = self.doc_db.find_doc(None, None, 'user', 10000, user_conditions)
+        else:
+            mongo_user_result = []
         if include_business:
-            biz_conditions = {'bid': {'$in': following_bids}}
-            mongo_biz_result = self.doc_db.find_doc(None, None, 'business', 10000, biz_conditions)
-            mongo_result = mongo_user_result + mongo_biz_result
+            if len(following_bids) > 0:
+                biz_conditions = {'bid': {'$in': following_bids}}
+                mongo_biz_result = self.doc_db.find_doc(None, None, 'business', 10000, biz_conditions)
+                mongo_result = mongo_user_result + mongo_biz_result
+            else:
+                mongo_result = mongo_user_result
         else:
             mongo_result = mongo_user_result
         mongo_dict_result = {}
@@ -80,7 +86,9 @@ class UserFollowings(Resource):
         for single_res in neo_result:
             if 'uid' in single_res.get('following'):
                 uid = single_res.get('following').get('uid')
-                final_result.append({'timestamp': single_res.get('timestamp'), 'user': mongo_dict_result.get(uid)})
+                final_result.append({'timestamp': single_res.get('timestamp'),
+                                     'user': filter_user_info(mongo_dict_result.get(uid))})
+
             elif 'bid' in single_res.get('following'):
                 bid = single_res.get('following').get('bid')
                 final_result.append({'timestamp': single_res.get('timestamp'), 'business': mongo_dict_result.get(bid)})

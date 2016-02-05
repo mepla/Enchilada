@@ -161,3 +161,20 @@ class UserFollowRequestAccept(Resource):
             msg = {'message': 'Could not retrieve requested information'}
             logging.error(msg)
             return msg, 500
+
+
+class UserUnfollow(Resource):
+    def __init__(self):
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def post(self, target_uid, uid):
+        try:
+            self.graph_db.delete_follower(uid, target_uid)
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'Either the user to tried to unfollow from does not exist or you don\'t follow him/her'}
+            logging.debug(msg)
+            return msg, 400
+
+        return '', 204

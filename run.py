@@ -4,7 +4,7 @@ from www.resources.enchilada_builtins import Business
 from www.resources.forgot_password import ForgotPassword, ChangeForgottenPassword
 from www.resources.point_transactions import PointTransactions
 from www.resources.storage import Storage, StorageAccess
-from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept
+from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept, UserUnfollow
 from www.resources.user_followings import UserFollowings
 from www.resources.user_messages import UserMessages, UserMessage
 from www.resources.user_notifications import UserNotifications, UserNotificationsSeen
@@ -69,6 +69,7 @@ def initialize_app():
     api.add_resource(UserFollowers, '/users/<string:target_uid>/followers')
     api.add_resource(UserFollowRequests, '/users/<string:target_uid>/followers/requests')
     api.add_resource(UserFollowRequestAccept, '/users/<string:target_uid>/followers/requests/accept')
+    api.add_resource(UserUnfollow, '/users/<string:target_uid>/followers/unfollow')
     api.add_resource(UserFollowings, '/users/<string:target_uid>/followings')
     api.add_resource(UserMessages, '/users/<string:target_uid>/messages')
     api.add_resource(UserMessage, '/users/<string:target_uid>/messages/<string:mid>')

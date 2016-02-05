@@ -504,6 +504,25 @@ class Neo4jDatabase(GraphDatabaseBase):
         else:
             return False
 
+    def delete_follower(self, uid, business_or_user_id):
+        try:
+            if business_or_user_id.find('uid') == 0:
+                end_node = self._graph.find_one('user', 'uid', business_or_user_id)
+            else:
+                end_node = self._graph.find_one('business', 'bid', business_or_user_id)
+            if not end_node:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseRecordNotFound()
+
+        user = self._graph.find_one('user', 'uid', uid)
+
+        existing_relation = self._graph.match_one(user, "FOLLOWS", end_node)
+        if existing_relation:
+            return self._graph.delete(existing_relation)
+        else:
+            raise DatabaseRecordNotFound()
+
     def checkin_user(self, business_id, user_id):
         try:
             business = self._graph.find_one('business', 'bid', business_id)
