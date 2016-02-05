@@ -160,4 +160,6 @@ class UserTimeline(Resource):
             filtered_info['hrbid'] = business_info['hrbid']
         if 'gallery' in business_info:
             filtered_info['gallery'] = business_info['gallery']
+        if 'category' in business_info:
+            filtered_info['category'] = business_info['category']
         return filtered_info
