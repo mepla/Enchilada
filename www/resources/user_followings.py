@@ -39,6 +39,9 @@ class UserFollowings(Resource):
             logging.debug(msg)
             return msg, 204
 
+        if len(neo_result) == 0:
+            return '', 204
+
         following_uids = [x.get('user').get('uid') for x in neo_result]
         conditions = {'uid': {'$in': following_uids}}
         mongo_result = self.doc_db.find_doc(None, None, 'user', 10000, conditions)
