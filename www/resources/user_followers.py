@@ -51,7 +51,7 @@ class UserFollowers(Resource):
         conditions = {'uid': {'$in': following_uids}}
         mongo_result = self.doc_db.find_doc(None, None, 'user', 10000, conditions)
         for i in range(0, len(neo_result)):
-            neo_result[i]['user'] = mongo_result[i]
+            neo_result[i]['user'] = filter_user_info(mongo_result[i])
 
         return neo_result
 
