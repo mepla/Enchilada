@@ -86,10 +86,16 @@ class UserFollowRequests(Resource):
             return msg, 204
 
         following_uids = [x.get('user').get('uid') for x in neo_result]
+
+        if len(following_uids) == 0:
+            msg = {'message': 'There is no followers request for this user.'}
+            logging.debug(msg)
+            return msg, 204
+
         conditions = {'uid': {'$in': following_uids}}
         mongo_result = self.doc_db.find_doc(None, None, 'user', 10000, conditions)
         for i in range(0, len(neo_result)):
-            neo_result[i]['user'] = mongo_result[i]
+            neo_result[i]['user'] = filter_user_info(mongo_result[i])
 
         return neo_result
 
@@ -126,6 +132,7 @@ class UserFollowRequests(Resource):
 class UserFollowRequestAccept(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -148,9 +155,25 @@ class UserFollowRequestAccept(Resource):
         frid = data.get('frid')
 
         try:
-            result = self.graph_db.accept_or_deny_follow_request(frid, accept)
-            # if accept is True:
-            #     follower, relation, followee = result
+            follower, relation, followee = self.graph_db.accept_or_deny_follow_request(frid, accept, return_path_data=True)
+            if accept is True:
+                followee = self.doc_db.find_doc('uid', followee.get('uid'), 'user')
+                metrics = followee.get('metrics')
+                if metrics:
+                    count = metrics.get('followers_count')
+                    if not count:
+                        count = 0
+                    metrics['followers_count'] = count + 1
+                    self.doc_db.update('uid', followee.get('uid'), 'user', {'$set': {'metrics': metrics}})
+
+                follower = self.doc_db.find_doc('uid', follower.get('uid'), 'user')
+                metrics = follower.get('metrics')
+                if metrics:
+                    count = metrics.get('followings_count')
+                    if not count:
+                        count = 0
+                    metrics['followings_count'] = count + 1
+                    self.doc_db.update('uid', follower.get('uid'), 'user', {'$set': {'metrics': metrics}})
 
         except DatabaseRecordNotFound:
             msg = {'message': 'Could not accept or deny follow request.'}
@@ -166,12 +189,29 @@ class UserFollowRequestAccept(Resource):
 class UserUnfollow(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
     def post(self, target_uid, uid):
         try:
             self.graph_db.delete_follower(uid, target_uid)
+            followee = self.doc_db.find_doc('uid', target_uid, 'user')
+            metrics = followee.get('metrics')
+            if metrics:
+                count = metrics.get('followers_count')
+                if count:
+                    metrics['followers_count'] = count + 1
+                    self.doc_db.update('uid', target_uid, 'user', {'$set': {'metrics': metrics}})
+
+            follower = self.doc_db.find_doc('uid', uid, 'user')
+            metrics = follower.get('metrics')
+            if metrics:
+                count = metrics.get('followings_count')
+                if count:
+                    metrics['followings_count'] = count - 1
+                    self.doc_db.update('uid', target_uid, 'user', {'$set': {'metrics': metrics}})
+
         except DatabaseRecordNotFound as exc:
             msg = {'message': 'Either the user to tried to unfollow from does not exist or you don\'t follow him/her'}
             logging.debug(msg)

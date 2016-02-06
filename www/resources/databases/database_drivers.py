@@ -365,6 +365,9 @@ class Neo4jDatabase(GraphDatabaseBase):
             if return_path_data is True:
                 return filter_user_info(new_relation.start_node.properties), new_relation.properties, \
                        filter_user_info(new_relation.end_node.properties)
+        else:
+            if return_path_data is True:
+                return filter_user_info(follower.properties), None, filter_user_info(followed.end_node.properties)
 
         self._graph.delete(friend_req)
 
@@ -385,7 +388,10 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         existing_relation = self._graph.match_one(user, rel_type, end_node)
         if existing_relation:
-            return existing_relation.properties
+            if return_path_data is True:
+                return filter_user_info(user.properties), existing_relation.properties, filter_user_info(end_node.properties)
+            else:
+                return existing_relation.properties
         else:
             timestamp = str(utc_now_timestamp())
             if request is True:
@@ -484,6 +490,24 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         response_list = sorted(response_list, key=itemgetter('timestamp'), reverse=True)
         return response_list
+
+    def user_followers_count(self, uid):
+        try:
+            cypher_statement = "match (n:user {uid: '%s'}) <-[r:FOLLOWS]- (m:user) return count(r)" % uid
+            result = self._graph.cypher.execute(cypher_statement)
+            if not result:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult()
+
+    def user_followings_count(self, uid):
+        try:
+            cypher_statement = "match (n:user {uid: '%s'}) -[r:FOLLOWS]-> (m:user) return count(r)" % uid
+            result = self._graph.cypher.execute(cypher_statement)
+            if not result:
+                raise Exception()
+        except Exception as exc:
+            raise DatabaseEmptyResult()
 
     def is_follower(self, uid, business_or_user_id):
         try:
