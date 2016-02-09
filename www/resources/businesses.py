@@ -51,7 +51,6 @@ class Businesses(Resource):
             logging.error(exc, msg)
             return msg
 
-
     @oauth2.check_access_token
     @db_helper.handle_aliases
     def get(self, uid=None):

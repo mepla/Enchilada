@@ -156,6 +156,17 @@ class MongoDatabase(DocumentDatabaseBase):
             logging.error('Error in finding doc in database: {} exc: {}'.format(self._mongo_db, exc))
             raise DatabaseFindError()
 
+    def find_users_with_concatenated_name(self, full_name):
+        result = self._mongo_db['user'].aggregate([{"$project": {"full_name":
+                                                                     {"$concat": ["$name", " ", "$lastname"]},
+                                                                 "uid": 1}},
+                                                   {"$match": {"full_name": {"$regex": ".*{}.*".format(full_name),
+                                                                             "$options": 'i'}}}])
+        return_list = []
+        for doc in result:
+            return_list.append(doc.get('uid'))
+        return return_list
+
     def find_doc(self, key, value, doc_type, limit=1, conditions=None, sort_key=None, sort_direction=1, force_array_return=False):
         print key, value, doc_type, conditions
         try:

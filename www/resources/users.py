@@ -1,3 +1,4 @@
+from flask_restful.reqparse import RequestParser
 from www.resources.authentication.password_management import PasswordManager
 
 __author__ = 'Mepla'
@@ -10,7 +11,8 @@ from flask_restful import Resource
 from www.resources.json_schemas import validate_json, JsonValidationException, patch_schema, user_put_schema, \
     change_normal_password_schema
 from www.resources.databases.factories import DatabaseFactory
-from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated
+from www.resources.databases.database_drivers import DatabaseFindError, DatabaseRecordNotFound, DocumentNotUpdated, \
+    DatabaseEmptyResult
 from www import oauth2, db_helper
 from www.resources.utilities.helpers import Patch, filter_user_info
 
@@ -18,7 +20,56 @@ from www.resources.utilities.helpers import Patch, filter_user_info
 # /users
 class Users(Resource):
     def __init__(self):
-        pass
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def get(self, uid=None):
+        parser = RequestParser()
+        parser.add_argument('name', type=str, help='`name` argument must be a string.')
+        parser.add_argument('email', type=str, help='`country` argument must be a string.')
+
+        parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
+        parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
+        parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
+        parser.add_argument('sort_by', type=str, help='`sort_by` argument must be a string.')
+
+        args = parser.parse_args()
+
+        name = args.get('name')
+        email = args.get('email')
+
+        conditions = {}
+
+        if name:
+            uids = self.doc_db.find_users_with_concatenated_name(name)
+            conditions['uid'] = {'$in': uids}
+
+        if email:
+            conditions['email'] = email
+
+        if len(conditions) < 1:
+            msg = {'message': 'You can not request to find a user without any query strings.'}
+            logging.debug(msg)
+            return msg, 400
+
+        try:
+            users = self.doc_db.find_doc(None, None, 'user', conditions=conditions, limit=30)
+
+        except DatabaseFindError as exc:
+            msg = {'message': 'Internal server error.'}
+            logging.error('Error reading database for users.')
+            return msg, 500
+        except DatabaseEmptyResult as exc:
+            msg = {'message': 'There are users with this search critieria.'}
+            logging.error(msg)
+            return msg, 204
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'There are users with this search critieria.'}
+            logging.error(msg)
+            return msg, 204
+
+        return filter_user_info(users)
 
 
 # /users/{user_id}
