@@ -4,6 +4,7 @@ from www.resources.enchilada_builtins import Business
 from www.resources.forgot_password import ForgotPassword, ChangeForgottenPassword
 from www.resources.point_transactions import PointTransactions
 from www.resources.storage import Storage, StorageAccess
+from www.resources.user_checkins import UserCheckins
 from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept, UserUnfollow
 from www.resources.user_followings import UserFollowings
 from www.resources.user_messages import UserMessages, UserMessage
@@ -20,7 +21,6 @@ from www.resources.sign_up import SignUp
 from www.resources.login import Login
 from www.resources.users import User, Users, UserChangePassword
 from www.resources.businesses import BusinessProfile, BusinessCategory, Businesses, BusinessAdmins, BusinessAdmin
-from www.resources.users_checkin import UsersCheckin
 from www.resources.checkin import CheckIn
 from www.resources.business_surveys import BusinessSurveyResult, BusinessSurveyTemplate, BusinessSurveyResults, BusinessSurveyTemplates
 from www.resources.business_messages import BusinessMessage, BusinessMessages
@@ -43,7 +43,7 @@ def initialize_app():
     api.add_resource(CheckIn, '/businesses/<string:bid>/checkins')
     api.add_resource(Users, '/users')
     api.add_resource(User, '/users/<string:user_id>')
-    api.add_resource(UsersCheckin, '/users/<string:user_id>/checkins')
+    api.add_resource(UserCheckins, '/users/<string:target_uid>/checkins')
     api.add_resource(BusinessCategory, '/businesses/categories')
     api.add_resource(BusinessSurveyResults, '/businesses/<string:bid>/surveys')
     api.add_resource(BusinessSurveyResult, '/businesses/<string:bid>/surveys/<string:survey_id>')
