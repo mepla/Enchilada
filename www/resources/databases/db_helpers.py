@@ -17,11 +17,11 @@ class DBHelper(object):
             try:
                 for key, value in kwargs.items():
                     if 'hrbid' in value:
-                        existing_biz = self.docs_db.find_doc('hrbid', value, 'business', limit=1)
+                        existing_biz = self.docs_db.find_doc('hrbid', value, 'business')
                         kwargs[key] = existing_biz.get('bid')
 
                     elif 'hruid' in value:
-                        existing_user = self.graph_db.find_single_user('hruid', value)
+                        existing_user = self.docs_db.find_doc('hruid', value, 'user')
                         kwargs[key] = existing_user.get('uid')
 
                 return f(*args, **dict(kwargs.items()))
