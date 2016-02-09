@@ -28,9 +28,9 @@ class UserTimeline(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
-        parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
-        parser.add_argument('include_business_info', type=bool, help='`include_business_info` argument must be a boolean.')
-        parser.add_argument('user_only', type=bool, help='`user_only` argument must be a boolean.')
+        parser.add_argument('include_user_info', type=str, help='`include_user_info` argument must be a boolean.')
+        parser.add_argument('include_business_info', type=str, help='`include_business_info` argument must be a boolean.')
+        parser.add_argument('user_only', type=str, help='`user_only` argument must be a boolean.')
 
         args = parser.parse_args()
 

@@ -56,7 +56,7 @@ class Businesses(Resource):
     @db_helper.handle_aliases
     def get(self, uid=None):
         parser = RequestParser()
-        parser.add_argument('near_me', type=bool, help='`return_count` argument must be a boolean.')
+        parser.add_argument('near_me', type=str, help='`return_count` argument must be a boolean.')
         parser.add_argument('lat', type=float, help='`lat` argument must be a float.')
         parser.add_argument('lon', type=float, help='`lon` argument must be a float.')
         parser.add_argument('name', type=str, help='`name` argument must be a string.')

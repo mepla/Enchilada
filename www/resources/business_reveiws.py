@@ -36,9 +36,9 @@ class BusinessReviews(Resource):
         parser.add_argument('sort_order', type=str, help='`sort_order` argument must be a string.')
         parser.add_argument('status', type=str, help='`status` argument must be a string')
         parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
-        parser.add_argument('return_count', type=bool, help='`return_count` argument must be a boolean.')
-        parser.add_argument('return_friends', type=bool, help='`return_friends` argument must be a boolean.')
-        parser.add_argument('include_user_info', type=bool, help='`include_user_info` argument must be a boolean.')
+        parser.add_argument('return_count', type=str, help='`return_count` argument must be a boolean.')
+        parser.add_argument('return_friends', type=str, help='`return_friends` argument must be a boolean.')
+        parser.add_argument('include_user_info', type=str, help='`include_user_info` argument must be a boolean.')
 
         args = parser.parse_args()
 

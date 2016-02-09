@@ -31,7 +31,7 @@ class UserMessages(Resource):
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
-        parser.add_argument('include_info', type=bool, help='`include_info` argument must be a boolean.')
+        parser.add_argument('include_info', type=str, help='`include_info` argument must be a boolean.')
 
         args = parser.parse_args()
         include_info = convert_str_query_string_to_bool(args.get('include_info'))

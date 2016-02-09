@@ -24,7 +24,7 @@ class UserFollowings(Resource):
     def get(self, target_uid, uid=None):
 
         parser = RequestParser()
-        parser.add_argument('include_business', type=bool, help='`include_business` argument must be a boolean.')
+        parser.add_argument('include_business', type=str, help='`include_business` argument must be a boolean.')
         args = parser.parse_args()
         include_business = convert_str_query_string_to_bool(args.get('include_business'))
 
