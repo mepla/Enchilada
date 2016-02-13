@@ -84,6 +84,10 @@ def check_email_format(email):
     return re.match(r'[^@]+@[^@]+\.[^@]+', email)
 
 
+def date_from_string(date_str):
+    return datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+
+
 def date_now_formatted():
     return date_formatted(datetime.datetime.utcnow())
 

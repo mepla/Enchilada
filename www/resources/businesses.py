@@ -64,6 +64,8 @@ class Businesses(Resource):
         parser.add_argument('category', type=str, help='`category` argument must be a string.')
         parser.add_argument('category_id', type=str, help='`category` argument must be a string.')
         parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
+        parser.add_argument('wifi', type=str, help='`wifi` argument must be a string.')
+        parser.add_argument('parking', type=str, help='`parking` argument must be a string.')
 
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
@@ -72,6 +74,8 @@ class Businesses(Resource):
 
         args = parser.parse_args()
 
+        wifi = convert_str_query_string_to_bool(args.get('wifi'))
+        parking = convert_str_query_string_to_bool(args.get('parking'))
         near_me = convert_str_query_string_to_bool(args.get('near_me'))
         lat = args.get('lat')
         lon = args.get('lon')
@@ -115,6 +119,12 @@ class Businesses(Resource):
             iso = country_iso_of_location(lat, lon)
             if iso:
                 conditions['address']['country'] = iso
+
+        if wifi:
+            conditions['facilities'] = {'wifi': 1}
+
+        if parking:
+            conditions['facilities'] = {'parking': 1}
 
         if len(conditions) < 1:
             msg = {'message': 'You can not request to find a business without any query strings.'}
