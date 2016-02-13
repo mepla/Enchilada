@@ -81,9 +81,12 @@ class Login(Resource):
             try:
                 existing_user = doc_db.find_doc('email', username, 'user')
             except DatabaseRecordNotFound as exc:
-                msg = {'message': 'Your username and password combination is not correct.'}
-                logging.error(msg)
-                return msg, 401
+                try:
+                    existing_user = doc_db.find_doc('phone', username, 'user')
+                except DatabaseRecordNotFound as exc:
+                    msg = {'message': 'Your username and password combination is not correct.'}
+                    logging.error(msg)
+                    return msg, 401
 
             except DatabaseFindError as exc:
                 msg = {'message': 'Internal server error'}
@@ -91,7 +94,7 @@ class Login(Resource):
                 return msg, 500
 
             if existing_user:
-                if PasswordManager.compare_passwords(password, existing_user['password'], existing_user['uid'], existing_user['email']):
+                if PasswordManager.compare_passwords(password, existing_user['password'], existing_user['uid']):
                     access_token_response = oauth2.generate_access_token(existing_user['uid'], client_id, scope)
                     return jsonify(access_token_response)
                 else:

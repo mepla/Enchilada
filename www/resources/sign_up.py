@@ -85,7 +85,7 @@ class SignUp(Resource):
         body['responsible_for'] = body['uid']
         if additional_resposibilities and len(additional_resposibilities) > 0:
             body['responsible_for'] += ' ' + ' '.join(additional_resposibilities)
-        hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'], body['email'])
+        hashed_password = pm.PasswordManager.hash_password(body['password'], body['uid'])
         body['password'] = hashed_password
 
         body['phone'] = ''
