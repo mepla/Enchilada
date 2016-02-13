@@ -175,7 +175,7 @@ class BusinessReviews(Resource):
         try:
             existing_business = self.doc_db.find_doc('bid', bid, 'business', limit=1)
         except DatabaseRecordNotFound as exc:
-            msg = {'message': 'The business you tried to create promotion for does not exist.'}
+            msg = {'message': 'The business you tried to create review for does not exist.'}
             logging.debug(msg)
             return msg, 404
 
@@ -192,27 +192,35 @@ class BusinessReviews(Resource):
             doc['status'] = 'needs_acceptance'
         else:
             doc['status'] = 'accepted'
-            try:
-                reviews_count = existing_business.get('reviews').get('count')
-            except Exception as exc:
-                existing_business['reviews'] = {'count': 0, 'rating_average': 0}
-                reviews_count = self.doc_db.find_count('bid', bid, 'business_reviews', conditions={'status': 'accepted'})
+
+            biz_metrics = existing_business.get('metrics')
+            reviews_count = biz_metrics.get('review_count')
+            if not reviews_count:
+                reviews_count = 0
+            biz_metrics['review_count'] = reviews_count + 1
 
             try:
-                reviews_average = existing_business.get('reviews').get('average_rating')
+                reviews_average = biz_metrics.get('average_rating')
             except Exception as exc:
                 logging.fatal('There was not a rating_average in business document (There really should be one).')
-                reviews_average = 0
+                reviews_average = 0.0
 
             if not reviews_average:
                 reviews_average = 0
             new_average = round(float(reviews_average * reviews_count + rating) / float(reviews_count + 1), 2)
-            existing_business['reviews']['average_rating'] = new_average
-            existing_business['reviews']['count'] = reviews_count + 1
+            biz_metrics['average_rating'] = new_average
+
+            existing_user = self.doc_db.find_doc('uid', uid, 'user', limit=1)
+            user_metrics = existing_user.get('metrics')
+            current_rev_count = user_metrics.get('review_count')
+            if not current_rev_count:
+                current_rev_count = 0
+            user_metrics['review_count'] = current_rev_count + 1
 
         try:
             if doc['status'] == 'accepted':
-                self.doc_db.update('bid', bid, 'business', {'$set': {'reviews': {'average_rating': new_average, 'count':reviews_count+1}}})
+                self.doc_db.update('bid', bid, 'business', {'$set': {'metrics': biz_metrics}})
+                self.doc_db.update('uid', uid, 'user', {'$set': {'metrics': user_metrics}})
             self.doc_db.save(doc, 'business_reviews')
         except DatabaseSaveError as exc:
             msg = {'message': 'Your changes may have been done partially or not at all.'}
