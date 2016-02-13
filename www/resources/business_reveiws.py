@@ -184,7 +184,7 @@ class BusinessReviews(Resource):
             logging.error(msg)
             return msg, 500
 
-        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid'), "chosen_count": 0}
+        doc = {'data': data, 'timestamp': utc_now_timestamp(), 'uid': uid, 'bid': bid, 'rid': uuid_with_prefix('rid'), "chosen_count": 0, "choosers": {}}
 
         min_acceptatble_rating = configs.get("POLICIES").get('reviews').get('lowest_acceptable_rating')
         rating = data.get('rating')
@@ -267,6 +267,12 @@ class ChooseBusinessReview(Resource):
     def post(self, uid, rid, bid=None, target_uid=None):
         try:
             review = self.doc_db.find_doc('rid', rid, 'business_reviews', 1)
+
+            if review.get('status') != 'accepted':
+                msg = {'message': 'You can not choose a review that is not accepted.'}
+                logging.error(msg)
+                return msg, 400
+
             choosers = review.get('choosers')
             if not choosers:
                 choosers = {}
@@ -284,13 +290,11 @@ class ChooseBusinessReview(Resource):
 
             else:
                 choosers[uid] = utc_now_timestamp()
-                self.doc_db.update('rid', rid, 'business_reviews', {'$set': {'choosers': choosers}})
+                self.doc_db.update('rid', rid, 'business_reviews', {'$set': {'choosers': choosers, 'chosen_count': len(choosers)}})
                 reviewer = self.doc_db.find_doc('uid', reviewer_id, 'user', 1)
                 if reviewer:
                     metrics = reviewer.get('metrics')
-                    if not metrics:
-                        metrics = {"followers_count": 0, "followings_count": 0, "chosen_reviews_count": 0}
-                    metrics['chosen_reviews_count'] += 1
+                    metrics['chosen_count'] = 1
                     self.doc_db.update('uid', reviewer_id, 'user', {'$set': {'metrics': metrics}})
 
         except DatabaseFindError as exc:
