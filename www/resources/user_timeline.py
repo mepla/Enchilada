@@ -162,4 +162,7 @@ class UserTimeline(Resource):
             filtered_info['gallery'] = business_info['gallery']
         if 'category' in business_info:
             filtered_info['category'] = business_info['category']
+        if 'metrics' in business_info:
+            filtered_info['metrics'] = business_info['metrics']
+
         return filtered_info

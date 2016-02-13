@@ -83,4 +83,7 @@ class UserPointTransactions(Resource):
             filtered_info['hrbid'] = business_info['hrbid']
         if 'gallery' in business_info:
             filtered_info['gallery'] = business_info['gallery']
+        if 'metrics' in business_info:
+            filtered_info['metrics'] = business_info['metrics']
+
         return filtered_info
