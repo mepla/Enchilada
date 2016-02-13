@@ -13,6 +13,7 @@ from www import oauth2, db_helper
 class BusinessFollowers(Resource):
     def __init__(self):
         self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -42,7 +43,18 @@ class BusinessFollowers(Resource):
     @db_helper.handle_aliases
     def post(self, bid, uid):
         try:
-            relation = self.graph_db.follow(bid, uid)
+            existing_business = self.doc_db.find_doc('bid', bid, 'business')
+        except DatabaseRecordNotFound as exc:
+            msg = {'message': 'The business you tried to get followers of does not exist.'}
+            logging.debug(msg)
+            return msg, 404
+
+        try:
+            relation = self.graph_db.follow(uid, bid)
+            metrics = existing_business.get('metrics')
+            metrics['followers_count'] += 1
+            self.doc_db.update('bid', bid, 'business', {'$set': {'metrics': metrics}})
+
         except DatabaseRecordNotFound:
             msg = {'message': 'The business you tried to follow does not exist.'}
             logging.debug(msg)
