@@ -67,7 +67,7 @@ class Businesses(Resource):
         parser.add_argument('wifi', type=str, help='`wifi` argument must be a string.')
         parser.add_argument('parking', type=str, help='`parking` argument must be a bool.')
         parser.add_argument('credit_card', type=str, help='`credit_card` argument must be a bool.')
-        parser.add_argument('reservation', type=str, help='`parking` argument must be a bool.')
+        parser.add_argument('reservation', type=str, help='`reservation` argument must be a bool.')
 
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')

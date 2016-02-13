@@ -1,5 +1,6 @@
 from operator import itemgetter
 from flask_restful.reqparse import RequestParser
+from www.resources.accounting.accountant import Accountant
 from www.resources.config import configs
 from www.resources.utilities.helpers import filter_general_document_db_record, convert_str_query_string_to_bool, \
     filter_user_info
@@ -30,12 +31,14 @@ class UserCheckins(Resource):
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
         parser.add_argument('after', type=float, help='`after` argument must be a timestamp (float).')
         parser.add_argument('include_business_info', type=str, help='`include_business_info` argument must be a boolean.')
+        parser.add_argument('summary', type=str, help='`summary` argument must be a boolean.')
 
         args = parser.parse_args()
 
         conditions = {}
 
         include_business_info = convert_str_query_string_to_bool(args.get('include_business_info'))
+        summary = convert_str_query_string_to_bool(args.get('summary'))
 
         before = args.get('before')
         after = args.get('after')
@@ -61,6 +64,25 @@ class UserCheckins(Resource):
 
         try:
             checkins = self.doc_db.find_doc('uid', target_uid, 'checkins', limit=limit, conditions=conditions)
+
+            # TODO: This is temporary
+            if summary:
+                try:
+                    summary_checkins = []
+                    unique_bizs = []
+                    for checkin in checkins:
+                        bid = checkin.get('bid')
+                        if bid not in unique_bizs:
+                            result = Accountant().get_balance(uid, bid)
+                            checkin['balance'] = result
+                            summary_checkins.append(checkin)
+                            unique_bizs.append(bid)
+
+                    checkins = summary_checkins
+
+                except DatabaseFindError as exc:
+                    return {'message': 'Internal server error'}, 500
+
             if include_business_info:
                 business_infos = {}
                 for checkin in checkins:
