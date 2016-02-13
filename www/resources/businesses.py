@@ -65,7 +65,9 @@ class Businesses(Resource):
         parser.add_argument('category_id', type=str, help='`category` argument must be a string.')
         parser.add_argument('rating', type=float, help='`rating` argument must be a float.')
         parser.add_argument('wifi', type=str, help='`wifi` argument must be a string.')
-        parser.add_argument('parking', type=str, help='`parking` argument must be a string.')
+        parser.add_argument('parking', type=str, help='`parking` argument must be a bool.')
+        parser.add_argument('credit_card', type=str, help='`credit_card` argument must be a bool.')
+        parser.add_argument('reservation', type=str, help='`parking` argument must be a bool.')
 
         parser.add_argument('limit', type=int, help='`limit` argument must be an integer.')
         parser.add_argument('before', type=float, help='`before` argument must be a timestamp (float).')
@@ -77,6 +79,8 @@ class Businesses(Resource):
         wifi = convert_str_query_string_to_bool(args.get('wifi'))
         parking = convert_str_query_string_to_bool(args.get('parking'))
         near_me = convert_str_query_string_to_bool(args.get('near_me'))
+        credit_card = convert_str_query_string_to_bool(args.get('credit_card'))
+        reservation = convert_str_query_string_to_bool(args.get('reservation'))
         lat = args.get('lat')
         lon = args.get('lon')
         name = args.get('name')
@@ -120,11 +124,21 @@ class Businesses(Resource):
             if iso:
                 conditions['address']['country'] = iso
 
-        if wifi:
-            conditions['facilities'] = {'wifi': 1}
+        if wifi or parser or reservation or credit_card:
+            facilty_cond = {}
+            if wifi:
+                facilty_cond['wifi'] = 1
 
-        if parking:
-            conditions['facilities'] = {'parking': 1}
+            if parking:
+                facilty_cond['parking'] = 1
+
+            if credit_card:
+                facilty_cond['credit_card'] = 1
+
+            if reservation:
+                facilty_cond['reservation'] = 1
+
+            conditions['facilities'] = facilty_cond
 
         if len(conditions) < 1:
             msg = {'message': 'You can not request to find a business without any query strings.'}
@@ -147,14 +161,14 @@ class Businesses(Resource):
 
         except DatabaseFindError as exc:
             msg = {'message': 'Internal server error.'}
-            logging.error('Error reading database for business_survey_templates.')
+            logging.error('Error reading database for business.')
             return msg, 500
         except DatabaseEmptyResult as exc:
-            msg = {'message': 'There are no survey templates for this business.'}
+            msg = {'message': 'There are no businesses.'}
             logging.error(msg)
             return msg, 204
         except DatabaseRecordNotFound as exc:
-            msg = {'message': 'There are no survey templates for this business.'}
+            msg = {'message': 'There are no businesses.'}
             logging.error(msg)
             return msg, 204
 
