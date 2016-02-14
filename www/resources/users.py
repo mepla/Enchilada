@@ -190,8 +190,7 @@ class User(Resource):
 
 class UserChangePassword(Resource):
     def __init__(self):
-        self.doc_db = DatabaseFactory().get_database_driver('document/auth')
-        self.graph_db = DatabaseFactory().get_database_driver('graph')
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
@@ -214,7 +213,7 @@ class UserChangePassword(Resource):
         old_pass = data.get('old_password')
 
         try:
-            existing_user = self.graph_db.find_single_user('uid', target_uid)
+            existing_user = self.doc_db.find_doc('uid', uid, 'user')
         except DatabaseRecordNotFound as exc:
             msg = {'message': 'Your username and password combination is not correct.'}
             logging.error(msg)
@@ -226,10 +225,9 @@ class UserChangePassword(Resource):
             return msg, 500
 
         if existing_user:
-            if PasswordManager.compare_passwords(old_pass, existing_user['password'], existing_user['uid'], existing_user['email']):
-                new_hash = PasswordManager.hash_password(new_pass, target_uid, existing_user['email'])
-                existing_user['password'] = new_hash
-                self.graph_db.update(existing_user)
+            if PasswordManager.compare_passwords(old_pass, existing_user['password'], existing_user['uid']):
+                new_hash = PasswordManager.hash_password(new_pass, target_uid)
+                self.doc_db.update('uid', uid, 'user', {"$set": {'password': new_hash}})
             else:
                 msg = {'message': 'Your old password is not correct.'}
                 return msg, 401
