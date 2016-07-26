@@ -382,7 +382,7 @@ class Neo4jDatabase(GraphDatabaseBase):
 
         self._graph.delete(friend_req)
 
-    def follow(self, uid, business_or_user_id, request=False, return_path_data=False):
+    def follow(self, uid, business_or_user_id, request=False, return_path_data=False, timestamp=None):
         try:
             if business_or_user_id.find('uid') == 0:
                 end_node = self._graph.find_one('user', 'uid', business_or_user_id)
@@ -404,7 +404,8 @@ class Neo4jDatabase(GraphDatabaseBase):
             else:
                 return existing_relation.properties
         else:
-            timestamp = str(utc_now_timestamp())
+            if not timestamp:
+                timestamp = str(utc_now_timestamp())
             if request is True:
                 new_id = uuid_with_prefix('frid')
                 new_relation = Relationship(user, rel_type, end_node, frid=new_id, timestamp=timestamp)

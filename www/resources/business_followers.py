@@ -52,6 +52,8 @@ class BusinessFollowers(Resource):
         try:
             relation = self.graph_db.follow(uid, bid)
             metrics = existing_business.get('metrics')
+            if 'followers_count' not in metrics:
+                metrics['followers_count'] = 0
             metrics['followers_count'] += 1
             self.doc_db.update('bid', bid, 'business', {'$set': {'metrics': metrics}})
 

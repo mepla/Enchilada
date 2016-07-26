@@ -1,0 +1,9 @@
+/**
+ Export to JSON plugin for PHPMyAdmin
+ @version 0.1
+ */
+
+// Database 'db_echo'
+// db_echo.Province
+
+[{"P_Id":"1","C_Id":"1","P_Name":"Ontario"}, {"P_Id":"2","C_Id":"1","P_Name":"Quebec"}, {"P_Id":"3","C_Id":"1","P_Name":"Nova Scotia"}, {"P_Id":"4","C_Id":"1","P_Name":"New Brunswick"}, {"P_Id":"5","C_Id":"1","P_Name":"Manitoba"}, {"P_Id":"6","C_Id":"1","P_Name":"British Columbia"}, {"P_Id":"7","C_Id":"1","P_Name":"Prince Edward Island"}, {"P_Id":"8","C_Id":"1","P_Name":"Saskatchewan"}, {"P_Id":"9","C_Id":"1","P_Name":"Alberta"}, {"P_Id":"10","C_Id":"1","P_Name":"Newfoundland and Labrador"}, {"P_Id":"11","C_Id":"2","P_Name":"tehran"}, {"P_Id":"12","C_Id":"1","P_Name":"on"}, {"P_Id":"13","C_Id":"6","P_Name":"ra"}, {"P_Id":"14","C_Id":"2","P_Name":"east azerbaijan"}]
