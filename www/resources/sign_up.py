@@ -24,6 +24,7 @@ class SignUp(Resource):
         super(SignUp, self).__init__()
         self.graph_db = DatabaseFactory().get_database_driver('graph')
         self.notification_manager = NotificationManager()
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
 
     def post(self):
         logging.info('Client requested for sign up.')
@@ -80,8 +81,11 @@ class SignUp(Resource):
             logging.debug(msg)
             return msg, 400
 
-        body['user_type'] = 'personal'
+        body['type'] = 'personal'
         body['uid'] = uuid_with_prefix('uid')
+        created_user = self.graph_db.create_new_user(**body)
+
+        body['user_type'] = 'personal'
         body['responsible_for'] = body['uid']
         if additional_resposibilities and len(additional_resposibilities) > 0:
             body['responsible_for'] += ' ' + ' '.join(additional_resposibilities)
@@ -103,8 +107,8 @@ class SignUp(Resource):
             "followings_count": 0,
             "chosen_reviews_count": 0
         }
+        self.doc_db.save(body, 'user')
 
-        created_user = self.graph_db.create_new_user(**body)
         uid = created_user.get('uid')
 
         try:
