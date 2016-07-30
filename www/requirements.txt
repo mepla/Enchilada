@@ -4,3 +4,4 @@ flask-httpauth
 jsonschema
 py2neo
 pymongo
+geopy

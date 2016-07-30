@@ -93,7 +93,25 @@ class UserNotificationsSeen(Resource):
     @db_helper.handle_aliases
     def post(self, uid, target_uid):
         try:
-            self.doc_db.update('uid', target_uid, 'user_notifications', {'$set': {'seen': True}}, conditions={'seen': False}, multiple=True)
+            self.doc_db.update('uid', target_uid, 'user_notifications', {'$set': {'seen': True}},
+                               conditions={'seen': False}, multiple=True)
+        except Exception as exc:
+            msg = {'message': 'Could not mark notifications as read',
+                   'error': 'internal_server_error'}
+            logging.error('{}: {}'.format(msg.get('message'), exc))
+            return msg, 500
+
+
+class UserNotificationDelete(Resource):
+    def __init__(self):
+        self.doc_db = DatabaseFactory().get_database_driver('document/docs')
+        self.graph_db = DatabaseFactory().get_database_driver('graph')
+
+    @oauth2.check_access_token
+    @db_helper.handle_aliases
+    def delete(self, uid, target_uid,notification_id):
+        try:
+            self.doc_db.delete('uid', target_uid, 'user_notifications', {'$set': {'seen': True}}, conditions={'seen': False}, multiple=True)
         except Exception as exc:
             msg = {'message': 'Could not mark notifications as read',
                    'error': 'internal_server_error'}
