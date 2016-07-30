@@ -1,19 +1,15 @@
 from www.resources.config import configs
-from www.resources.json_schemas import validate_json, JsonValidationException, \
-    user_notification_seen_schema
 
 __author__ = 'Mepla'
 
-import time
 import logging
 
 from flask_restful import Resource
 from flask_restful.reqparse import RequestParser
-from flask import request
 
-from www.resources.databases.database_drivers import DatabaseSaveError, DatabaseRecordNotFound, DatabaseFindError, \
+from www.resources.databases.database_drivers import DatabaseRecordNotFound, DatabaseFindError, \
     DatabaseEmptyResult
-from www.resources.utilities.helpers import uuid_with_prefix, utc_now_timestamp, convert_str_query_string_to_bool
+from www.resources.utilities.helpers import convert_str_query_string_to_bool
 from www.resources.databases.factories import DatabaseFactory
 from www.resources.utilities.helpers import filter_general_document_db_record
 from www import oauth2, db_helper
@@ -109,11 +105,12 @@ class UserNotificationDelete(Resource):
 
     @oauth2.check_access_token
     @db_helper.handle_aliases
-    def delete(self, uid, target_uid,notification_id):
+    def delete(self, uid, target_uid, notification_id):
         try:
-            self.doc_db.delete('uid', target_uid, 'user_notifications', {'$set': {'seen': True}}, conditions={'seen': False}, multiple=True)
+            self.doc_db.delete('user_notifications', {'unid': notification_id})
+            return {}, 204
         except Exception as exc:
-            msg = {'message': 'Could not mark notifications as read',
+            msg = {'message': 'Could not delete notification',
                    'error': 'internal_server_error'}
             logging.error('{}: {}'.format(msg.get('message'), exc))
             return msg, 500
