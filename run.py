@@ -8,7 +8,8 @@ from www.resources.user_checkins import UserCheckins
 from www.resources.user_followers import UserFollowers, UserFollowRequests, UserFollowRequestAccept, UserUnfollow
 from www.resources.user_followings import UserFollowings
 from www.resources.user_messages import UserMessages, UserMessage
-from www.resources.user_notifications import UserNotifications, UserNotificationsSeen, UserNotificationDelete
+from www.resources.user_notifications import UserNotifications, UserNotificationsSeen, UserNotificationDelete, \
+    UserNotificationCount
 from www.resources.user_points import UserPointTransactions
 from www.resources.user_reviews import UserReviews
 from www.resources.user_timeline import UserTimeline
@@ -77,6 +78,7 @@ def initialize_app():
     api.add_resource(UserNotifications, '/users/<string:target_uid>/notifications')
     api.add_resource(UserNotificationsSeen, '/users/<string:target_uid>/notifications/mark_as_seen')
     api.add_resource(UserNotificationDelete, '/users/<string:target_uid>/notifications/<string:notification_id>')
+    api.add_resource(UserNotificationCount, '/users/<string:target_uid>/notifications/count')
     api.add_resource(BusinessBalance, '/businesses/<string:bid>/balances/<string:uid>')
     api.add_resource(PointTransactions, '/businesses/<string:bid>/point_transactions/<string:uid>')
     api.add_resource(UserPointTransactions, '/users/<string:target_uid>/point_transactions')
